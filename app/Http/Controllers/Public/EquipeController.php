@@ -76,6 +76,12 @@ class EquipeController extends Controller
                 'buts_contre' => '-',
             ];
         }
-        return view('public.equipe_show', compact('equipe', 'position', 'stats'));
+        $rencontres = \App\Models\Rencontre::with(['equipe1', 'equipe2'])
+            ->where(function($q) use($id) {
+                $q->where('equipe1_id', $id)->orWhere('equipe2_id', $id);
+            })
+            ->orderBy('date')
+            ->get();
+        return view('public.equipe_show', compact('equipe', 'position', 'stats', 'rencontres'));
     }
 }
