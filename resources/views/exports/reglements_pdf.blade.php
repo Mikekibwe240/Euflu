@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Règlements</title>
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #888; padding: 6px 8px; text-align: left; }
+        th { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h2 style="text-align:center;">Liste des Règlements</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Description</th>
+                <th>Saison</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach($reglements as $reglement)
+            <tr>
+                <td>{{ $reglement->titre }}</td>
+                <td>{{ $reglement->description }}</td>
+                <td>{{ $reglement->saison->annee ?? '-' }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+</body>
+</html>
