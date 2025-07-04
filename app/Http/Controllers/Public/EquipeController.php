@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Equipe;
 use Illuminate\Http\Request;
 use App\Models\Saison;
+use App\Helpers\SaisonHelper;
 
 class EquipeController extends Controller
 {
     public function index(Request $request)
     {
+        $saison = SaisonHelper::getActiveSaison($request);
         $query = \App\Models\Equipe::with('pool');
+        if ($saison) {
+            $query->where('saison_id', $saison->id);
+        }
         if ($request->filled('nom')) {
             $query->where('nom', 'like', '%' . $request->nom . '%');
         }
@@ -23,8 +28,10 @@ class EquipeController extends Controller
             }
         }
         $equipes = $query->orderBy('nom')->paginate(10);
-        $pools = \App\Models\Pool::all();
-        return view('public.equipes', compact('equipes', 'pools'));
+        $pools = $saison ? $saison->pools()->with('equipes')->get() : collect();
+        $saisons = \App\Models\Saison::orderByDesc('date_debut')->get();
+        if (!isset($saisons)) $saisons = collect();
+        return view('public.equipes', compact('equipes', 'pools', 'saison', 'saisons'));
     }
 
     public function search(Request $request)
@@ -40,7 +47,7 @@ class EquipeController extends Controller
     public function show($id)
     {
         $equipe = Equipe::with(['joueurs', 'pool', 'joueurs.buts'])->findOrFail($id);
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = Saison::where('active', 1)->first();
         $poule = $equipe->pool;
         $classement = collect();
         if ($poule) {
@@ -62,26 +69,8 @@ class EquipeController extends Controller
                 break;
             }
         }
-        // Récupérer stats équipe pour la saison
-        $stats = $equipe->statsSaison ? $equipe->statsSaison($saison?->id)->first() : null;
-        // Calcul dynamique si pas de stats
-        if (!$stats) {
-            $buts_pour = $equipe->joueurs->sum(fn($j) => $j->buts->count());
-            $stats = (object)[
-                'points' => '-',
-                'victoires' => '-',
-                'nuls' => '-',
-                'defaites' => '-',
-                'buts_pour' => $buts_pour,
-                'buts_contre' => '-',
-            ];
-        }
-        $rencontres = \App\Models\Rencontre::with(['equipe1', 'equipe2'])
-            ->where(function($q) use($id) {
-                $q->where('equipe1_id', $id)->orWhere('equipe2_id', $id);
-            })
-            ->orderBy('date')
-            ->get();
-        return view('public.equipe_show', compact('equipe', 'position', 'stats', 'rencontres'));
+        $rencontres = $equipe->rencontres()->where('saison_id', $saison?->id)->orderBy('date')->get();
+        $stats = $equipe->statsSaison($saison?->id)->first();
+        return view('public.equipe_show', compact('equipe', 'classement', 'position', 'rencontres', 'stats', 'saison'));
     }
 }

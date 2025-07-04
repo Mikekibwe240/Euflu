@@ -13,18 +13,17 @@ use Illuminate\Support\Facades\Auth;
 use App\Exports\RencontresExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\StatistiquesHelper;
 
 class RencontreController extends Controller
 {
     public function index(Request $request)
     {
-        // Déterminer la saison sélectionnée ou la saison ouverte par défaut
+        // Déterminer la saison active (champ 'active')
+        $saison = \App\Models\Saison::where('active', 1)->first();
         if ($request->filled('saison_id')) {
             $saison = Saison::find($request->saison_id);
-        } else {
-            $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
         }
-
         // Charger les pools et équipes de la saison sélectionnée (ou vide si aucune)
         $pools = $saison ? Pool::where('saison_id', $saison->id)->get() : collect();
         $equipes = $saison ? Equipe::where('saison_id', $saison->id)->get() : collect();
@@ -150,7 +149,13 @@ class RencontreController extends Controller
         }
         // Gestion équipe du MVP libre
         $data['mvp_libre_equipe'] = $request->input('mvp_libre_equipe');
+        $data['updated_by'] = auth()->user() ? auth()->user()->id : null;
         Rencontre::create($data);
+        // Recalcul des stats si scores renseignés à la création
+        if (!empty($data['score_equipe1']) && !empty($data['score_equipe2']) && !empty($data['equipe1_id']) && !empty($data['equipe2_id']) && !empty($data['saison_id'])) {
+            StatistiquesHelper::updateStatsForTeam($data['equipe1_id'], $data['saison_id']);
+            StatistiquesHelper::updateStatsForTeam($data['equipe2_id'], $data['saison_id']);
+        }
         Log::info('Création d\'une rencontre', ['date' => $data['date'], 'admin_id' => Auth::id()]);
         return redirect()->route('admin.rencontres.index')->with('success', 'Rencontre ajoutée avec succès.');
     }
@@ -162,6 +167,54 @@ class RencontreController extends Controller
         $pools = $saison ? Pool::where('saison_id', $saison->id)->get() : collect();
         $equipes = $saison ? Equipe::where('saison_id', $saison->id)->get() : collect();
         return view('admin.rencontres.edit', compact('rencontre', 'pools', 'equipes', 'saison'));
+    }
+
+    /**
+     * Recalcule et met à jour les statistiques pour les deux équipes d'un match
+     */
+    protected function updateStatsForTeams($equipe1_id, $equipe2_id, $saison_id)
+    {
+        foreach ([$equipe1_id, $equipe2_id] as $equipe_id) {
+            $equipe = \App\Models\Equipe::find($equipe_id);
+            if (!$equipe) continue;
+            $rencontres = \App\Models\Rencontre::where(function($q) use ($equipe_id) {
+                $q->where('equipe1_id', $equipe_id)->orWhere('equipe2_id', $equipe_id);
+            })
+            ->where('saison_id', $saison_id)
+            ->whereNotNull('score_equipe1')
+            ->whereNotNull('score_equipe2')
+            ->get();
+            $points = $victoires = $nuls = $defaites = $buts_pour = $buts_contre = $cartons_jaunes = $cartons_rouges = 0;
+            foreach ($rencontres as $match) {
+                $isEquipe1 = $match->equipe1_id == $equipe_id;
+                $scoreFor = $isEquipe1 ? $match->score_equipe1 : $match->score_equipe2;
+                $scoreAgainst = $isEquipe1 ? $match->score_equipe2 : $match->score_equipe1;
+                $buts_pour += $scoreFor;
+                $buts_contre += $scoreAgainst;
+                if ($scoreFor > $scoreAgainst) $victoires++;
+                elseif ($scoreFor == $scoreAgainst) $nuls++;
+                else $defaites++;
+                // Cartons (optionnel, à adapter si tu as des relations)
+                if ($match->relationLoaded('cartons')) {
+                    $cartons_jaunes += $match->cartons->where('joueur.equipe_id', $equipe_id)->where('type', 'jaune')->count();
+                    $cartons_rouges += $match->cartons->where('joueur.equipe_id', $equipe_id)->where('type', 'rouge')->count();
+                }
+            }
+            $points = $victoires * 3 + $nuls;
+            \App\Models\StatistiqueEquipe::updateOrCreate(
+                ['equipe_id' => $equipe_id, 'saison_id' => $saison_id],
+                [
+                    'points' => $points,
+                    'victoires' => $victoires,
+                    'nuls' => $nuls,
+                    'defaites' => $defaites,
+                    'buts_pour' => $buts_pour,
+                    'buts_contre' => $buts_contre,
+                    'cartons_jaunes' => $cartons_jaunes,
+                    'cartons_rouges' => $cartons_rouges,
+                ]
+            );
+        }
     }
 
     public function update(Request $request, $id)
@@ -187,40 +240,14 @@ class RencontreController extends Controller
             'logo_equipe2_libre.max' => 'Le logo de l\'équipe 2 ne doit pas dépasser 2 Mo.',
         ];
         $request->validate($rules, $messages);
-        $data = $request->only(['pool_id', 'equipe1_id', 'equipe2_id', 'date', 'heure', 'stade', 'journee', 'score_equipe1', 'score_equipe2']);
-        // Gestion équipe 1 libre
-        if ($request->filled('equipe1_libre')) {
-            $data['equipe1_libre'] = $request->equipe1_libre;
-            $data['equipe1_id'] = null;
-        } else {
-            $data['equipe1_id'] = $request->equipe1_id;
-            $data['equipe1_libre'] = null;
-        }
-        // Gestion équipe 2 libre
-        if ($request->filled('equipe2_libre')) {
-            $data['equipe2_libre'] = $request->equipe2_libre;
-            $data['equipe2_id'] = null;
-        } else {
-            $data['equipe2_id'] = $request->equipe2_id;
-            $data['equipe2_libre'] = null;
-        }
-        // Gestion upload logos équipes libres
-        if ($request->hasFile('logo_equipe1_libre')) {
-            // Supprimer l'ancien logo si existant
-            if ($rencontre->logo_equipe1_libre) {
-                \Storage::disk('public')->delete($rencontre->logo_equipe1_libre);
-            }
-            $data['logo_equipe1_libre'] = $request->file('logo_equipe1_libre')->store('logos_equipes_libres', 'public');
-        }
-        if ($request->hasFile('logo_equipe2_libre')) {
-            if ($rencontre->logo_equipe2_libre) {
-                \Storage::disk('public')->delete($rencontre->logo_equipe2_libre);
-            }
-            $data['logo_equipe2_libre'] = $request->file('logo_equipe2_libre')->store('logos_equipes_libres', 'public');
-        }
-        // Gestion équipe du MVP libre
-        $data['mvp_libre_equipe'] = $request->input('mvp_libre_equipe');
+        $data = $request->only(['pool_id', 'equipe1_id', 'equipe2_id', 'date', 'heure', 'stade', 'journee', 'type_rencontre', 'score_equipe1', 'score_equipe2']);
+        $data['updated_by'] = auth()->user() ? auth()->user()->id : null;
         $rencontre->update($data);
+        // Recalcul des stats après modification du score
+        if ($rencontre->score_equipe1 !== null && $rencontre->score_equipe2 !== null) {
+            StatistiquesHelper::updateStatsForTeam($rencontre->equipe1_id, $rencontre->saison_id);
+            StatistiquesHelper::updateStatsForTeam($rencontre->equipe2_id, $rencontre->saison_id);
+        }
         Log::info('Modification d\'une rencontre', ['rencontre_id' => $rencontre->id, 'admin_id' => Auth::id()]);
         // Validation supplémentaire : deux équipes doivent être dans le même pool sauf si rencontre hors calendrier (pool_id ou journee null)
         if ($request->filled('pool_id') && $request->filled('equipe1_id') && $request->filled('equipe2_id') && $request->filled('journee')) {
@@ -616,6 +643,8 @@ class RencontreController extends Controller
             $rencontre->mvp_id = null;
             $rencontre->mvp_libre = null;
         }
+        // Enregistrer l'auteur de la modification
+        $rencontre->updated_by = auth()->id();
         $rencontre->save();
 
         return redirect()->route('admin.rencontres.index')->with('success', 'Résultat mis à jour avec succès.');
@@ -640,8 +669,9 @@ class RencontreController extends Controller
      */
     public function genererForm()
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
-        $pools = $saison ? Pool::where('saison_id', $saison->id)->get() : collect();
+        // Utiliser la saison active (helper) si aucune saison 'ouverte' n'existe
+        $saison = \App\Helpers\SaisonHelper::getActiveSaison();
+        $pools = $saison ? \App\Models\Pool::where('saison_id', $saison->id)->get() : collect();
         return view('admin.rencontres.generer', compact('pools', 'saison'));
     }
 
@@ -713,7 +743,7 @@ class RencontreController extends Controller
 
     public function show($id)
     {
-        $rencontre = \App\Models\Rencontre::with(['equipe1', 'equipe2', 'pool', 'buts.joueur', 'cartons.joueur', 'mvp', 'equipe1.joueurs', 'equipe2.joueurs'])->findOrFail($id);
+        $rencontre = \App\Models\Rencontre::with(['equipe1', 'equipe2', 'pool', 'buts.joueur', 'cartons.joueur', 'mvp', 'equipe1.joueurs', 'equipe2.joueurs', 'updatedBy'])->findOrFail($id);
         return view('admin.rencontres.show', compact('rencontre'));
     }
 }

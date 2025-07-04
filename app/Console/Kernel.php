@@ -11,6 +11,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\FixEquipeLogos::class,
         \App\Console\Commands\FixEquipeLogoManual::class,
         \App\Console\Commands\CheckEquipeLogos::class,
+        \App\Console\Commands\RecalculateAllTeamStats::class,
     ];
 
     protected function schedule(Schedule $schedule)

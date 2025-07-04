@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between px-6 pt-6">
             <a href="<?php echo e(url()->previous()); ?>" class="text-[#6fcf97] font-bold text-sm hover:underline flex items-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                Matchday <?php echo e($rencontre->journee ?? '-'); ?>
+                Journée <?php echo e($rencontre->journee ?? '-'); ?>
 
             </a>
             <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider"><?php echo e($rencontre->stade ?? ''); ?></div>
@@ -99,6 +99,15 @@
                                 <span class="font-bold"><?php echo e($carton->joueur?->nom); ?> <?php echo e($carton->joueur?->prenom); ?></span>
                                 <span class="text-xs text-gray-400"><?php echo e($carton->minute ? $carton->minute . "'" : ''); ?></span>
                                 <span class="text-xs <?php echo e($carton->type == 'jaune' ? 'text-yellow-400' : 'text-red-500'); ?>"><?php echo e(ucfirst($carton->type)); ?></span>
+                                <span class="text-xs text-gray-400 ml-2">
+                                    <?php if($carton->equipe_id == $rencontre->equipe1?->id): ?>
+                                        (<?php echo e($rencontre->equipe1?->nom); ?>)
+                                    <?php elseif($carton->equipe_id == $rencontre->equipe2?->id): ?>
+                                        (<?php echo e($rencontre->equipe2?->nom); ?>)
+                                    <?php elseif($carton->equipe_libre_nom): ?>
+                                        (<?php echo e($carton->equipe_libre_nom); ?>)
+                                    <?php endif; ?>
+                                </span>
                             </li>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         <?php if($rencontre->cartons->isEmpty()): ?>
@@ -109,10 +118,41 @@
                 <div class="flex-1">
                     <div class="font-bold text-[#6fcf97] uppercase text-sm mb-1">Homme du match</div>
                     <div class="text-white text-lg font-extrabold">
-                        <?php echo e($rencontre->mvp?->nom ?? '-'); ?>
+                        <?php if($rencontre->mvp): ?>
+                            <?php echo e($rencontre->mvp->nom); ?> <?php echo e($rencontre->mvp->prenom); ?>
 
+                            <span class="text-xs text-gray-400">
+                                (
+                                <?php if($rencontre->mvp->equipe?->nom): ?>
+                                    <?php echo e($rencontre->mvp->equipe->nom); ?>
+
+                                <?php elseif($rencontre->mvp_libre_equipe): ?>
+                                    <?php echo e($rencontre->mvp_libre_equipe); ?>
+
+                                <?php else: ?>
+                                    Équipe inconnue
+                                <?php endif; ?>
+                                )
+                            </span>
+                        <?php elseif($rencontre->mvp_libre): ?>
+                            <?php echo e($rencontre->mvp_libre); ?>
+
+                            <span class="text-xs text-gray-400">
+                                (
+                                <?php echo e($rencontre->mvp_libre_equipe ?? 'Équipe inconnue'); ?>
+
+                                )
+                            </span>
+                        <?php else: ?>
+                            -
+                        <?php endif; ?>
                     </div>
                 </div>
+            </div>
+            <div class="mt-4 text-xs text-gray-400 text-right">
+                <?php if($rencontre->updatedBy): ?>
+                    <span>Dernière modification par : <span class="font-bold"><?php echo e($rencontre->updatedBy->name); ?></span></span>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -124,6 +164,57 @@
     </div>
     <div class="flex justify-center mt-8">
         <a href="<?php echo e(route('public.match.pdf', ['id' => $rencontre->id])); ?>" class="px-8 py-3 bg-[#23272a] border-2 border-[#6fcf97] text-white font-bold rounded hover:bg-[#6fcf97] hover:text-[#23272a] transition" target="_blank">Télécharger la feuille de match (PDF)</a>
+    </div>
+    <div class="bg-[#181d1f] px-6 py-4 rounded-b-xl mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <?php $__currentLoopData = [$rencontre->equipe1, $rencontre->equipe2]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $equipe): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php if($equipe): ?>
+                    <?php
+                        $effectif = \App\Models\MatchEffectif::where('rencontre_id', $rencontre->id)->where('equipe_id', $equipe->id)->first();
+                    ?>
+                    <div>
+                        <div class="font-bold text-[#6fcf97] uppercase text-base mb-2">Effectif <?php echo e($equipe->nom); ?></div>
+                        <?php if($effectif): ?>
+                            <div class="mb-2">
+                                <span class="font-semibold text-white">Titulaires :</span>
+                                <ul class="text-white text-sm space-y-1 mt-1">
+                                    <?php $__currentLoopData = $effectif->joueurs->where('type', 'titulaire')->sortBy('ordre'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $titulaire): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <li><?php echo e($titulaire->joueur->nom ?? '-'); ?></li>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </ul>
+                            </div>
+                            <div class="mb-2">
+                                <span class="font-semibold text-white">Remplaçants :</span>
+                                <ul class="text-white text-sm space-y-1 mt-1">
+                                    <?php $__currentLoopData = $effectif->joueurs->where('type', 'remplaçant')->sortBy('ordre'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $remplacant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <li><?php echo e($remplacant->joueur->nom ?? '-'); ?></li>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </ul>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-white">Remplacements :</span>
+                                <ul class="text-white text-sm space-y-1 mt-1">
+                                    <?php $__empty_1 = true; $__currentLoopData = $effectif->remplacements; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $remp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <li>
+                                            <span class="font-bold"><?php echo e($remp->remplaçant->nom ?? '-'); ?></span>
+                                            <?php if(!is_null($remp->minute)): ?>
+                                                <span class="text-xs text-gray-400"><?php echo e($remp->minute); ?>'</span>
+                                            <?php endif; ?>
+                                            <span class="text-xs">a remplacé</span>
+                                            <span class="font-bold"><?php echo e($remp->remplacé->nom ?? '-'); ?></span>
+                                        </li>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <li class="text-gray-500">Aucun remplacement</li>
+                                    <?php endif; ?>
+                                </ul>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-gray-400 italic">Aucun effectif saisi</div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </div>
     </div>
 </div>
 <?php $__env->stopSection(); ?>

@@ -62,9 +62,14 @@
                 @if($meilleur)
                     <div class="flex items-center gap-3">
                         @if($meilleur->photo)
-                            <img src="{{ asset('storage/' . $meilleur->photo) }}" alt="Photo {{ $meilleur->nom }}" class="h-12 w-12 rounded-full object-cover border border-gray-200 bg-white" onerror="this.style.display='none'">
+                            <img src="{{ asset('storage/' . $meilleur->photo) }}" alt="Photo {{ $meilleur->nom }}" class="h-12 w-12 rounded-full object-cover border border-gray-200 bg-white">
                         @else
-                            <span class="flex h-12 w-12 rounded-full bg-blue-100 text-blue-700 font-bold items-center justify-center text-xl">{{ strtoupper(substr($meilleur->nom,0,1)) }}</span>
+                            <div class="h-12 w-12 rounded-full bg-gray-700 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-10 w-10">
+                                    <circle cx="12" cy="8" r="4"/>
+                                    <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
+                                </svg>
+                            </div>
                         @endif
                         <span class="font-semibold text-white text-lg">{{ $meilleur->nom }} {{ $meilleur->prenom }}</span>
                         <span class="text-[#6fcf97] font-bold text-lg">{{ $meilleur->buts->count() }} buts</span>
@@ -85,9 +90,14 @@
             @foreach($equipe->joueurs as $joueur)
                 <a href="{{ route('public.joueurs.show', $joueur->id) }}" class="flex items-center gap-4 bg-[#181d1f] rounded-lg p-4 hover:bg-[#23272a] transition group border border-[#31363a]">
                     @if($joueur->photo)
-                        <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo {{ $joueur->nom }}" class="h-12 w-12 rounded-full object-cover border border-gray-200 bg-white" onerror="this.style.display='none'">
+                        <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo {{ $joueur->nom }}" class="h-12 w-12 rounded-full object-cover border border-gray-200 bg-white">
                     @else
-                        <span class="flex h-12 w-12 rounded-full bg-blue-100 text-blue-700 font-bold items-center justify-center text-xl">{{ strtoupper(substr($joueur->nom,0,1)) }}</span>
+                        <div class="h-12 w-12 rounded-full bg-gray-700 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-10 w-10">
+                                <circle cx="12" cy="8" r="4"/>
+                                <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
+                            </svg>
+                        </div>
                     @endif
                     <div>
                         <div class="font-bold text-white text-lg group-hover:text-[#6fcf97]">{{ $joueur->nom }} {{ $joueur->prenom }}</div>
@@ -112,7 +122,13 @@
                     @foreach($rencontres as $match)
                         <tr>
                             <td class="px-4 py-3">{{ \Carbon\Carbon::parse($match->date)->format('d/m/Y') }}</td>
-                            <td class="px-4 py-3">{{ $match->equipe1_id == $equipe->id ? $match->equipe2->nom : $match->equipe1->nom }}</td>
+                            <td class="px-4 py-3 flex items-center gap-2">
+                                @php
+                                    $adversaire = $match->equipe1_id == $equipe->id ? $match->equipe2 : $match->equipe1;
+                                @endphp
+                                <x-team-logo :team="$adversaire" :size="32" />
+                                {{ $adversaire->nom ?? '-' }}
+                            </td>
                             <td class="px-4 py-3 text-center">
                                 @if($match->score_equipe1 !== null && $match->score_equipe2 !== null)
                                     {{ $match->equipe1_id == $equipe->id ? $match->score_equipe1 : $match->score_equipe2 }} - {{ $match->equipe1_id == $equipe->id ? $match->score_equipe2 : $match->score_equipe1 }}
@@ -139,6 +155,39 @@
 
 @section('scripts')
 <script src="/js/chart.umd.min.js"></script>
+<script>
+// Carrousel auto-défilant moderne (images + vidéo)
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-carousel]')?.forEach(function(carousel) {
+        let slides = carousel.querySelectorAll('[data-carousel-item]');
+        let indicators = carousel.querySelectorAll('[data-carousel-indicator]');
+        let current = 0;
+        let interval = null;
+        function showSlide(idx) {
+            slides.forEach((el, i) => {
+                el.classList.toggle('hidden', i !== idx);
+                if (indicators[i]) indicators[i].style.opacity = (i === idx ? '1' : '0.5');
+            });
+            current = idx;
+        }
+        function nextSlide() {
+            showSlide((current + 1) % slides.length);
+        }
+        function prevSlide() {
+            showSlide((current - 1 + slides.length) % slides.length);
+        }
+        indicators.forEach((btn, i) => {
+            btn.addEventListener('click', () => showSlide(i));
+        });
+        carousel.querySelector('[data-carousel-next]')?.addEventListener('click', nextSlide);
+        carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', prevSlide);
+        showSlide(0);
+        interval = setInterval(nextSlide, 5000);
+        carousel.addEventListener('mouseenter', () => clearInterval(interval));
+        carousel.addEventListener('mouseleave', () => interval = setInterval(nextSlide, 5000));
+    });
+});
+</script>
 @if(!empty($rencontres) && !$rencontres->isEmpty())
 <script>
     const rencontres = @json($rencontres);

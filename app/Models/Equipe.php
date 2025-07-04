@@ -28,4 +28,11 @@ class Equipe extends Model
     public function statsSaisons() {
         return $this->hasMany(\App\Models\StatistiqueEquipe::class);
     }
+    public function rencontres() {
+        // Retourne tous les matchs où l'équipe est equipe1 ou equipe2
+        return \App\Models\Rencontre::where(function($q) {
+            $q->where('equipe1_id', $this->id)
+              ->orWhere('equipe2_id', $this->id);
+        });
+    }
 }

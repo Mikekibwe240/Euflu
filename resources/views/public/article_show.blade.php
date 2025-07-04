@@ -1,63 +1,84 @@
 @extends('layouts.public')
 @section('title', $article->titre)
 @section('content')
+@php
+    $imgCount = $article->images?->count() ?? 0;
+@endphp
 <div class="container mx-auto py-8 max-w-3xl">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-        <h1 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">{{ $article->titre }}</h1>
-        <div class="mb-4 flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-300 items-center">
-            <span class="bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 px-2 py-1 rounded text-xs font-semibold">{{ $article->type ?? 'Article' }}</span>
-            <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded text-xs">{{ $article->saison->nom ?? '-' }}</span>
-            <span class="bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200 px-2 py-1 rounded text-xs">{{ $article->created_at->format('d/m/Y') }}</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">par {{ $article->user->name ?? '-' }}</span>
+    <div class="bg-gradient-to-br from-[#23272a] via-[#181d1f] to-[#10181c] rounded-2xl shadow-2xl p-8 border border-[#31363a] relative overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none select-none opacity-10" style="background:url('/storage/img_euflu/fecofa.png') center/40% no-repeat;"></div>
+        <div class="mb-8 relative z-10">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-2 drop-shadow">{{ $article->titre }}</h1>
+                    <div class="flex flex-wrap gap-2 text-sm text-gray-300 items-center">
+                        <span class="bg-blue-900/80 text-blue-200 px-2 py-1 rounded text-xs font-semibold">{{ $article->type ?? 'Article' }}</span>
+                        <span class="bg-gray-800/80 text-gray-200 px-2 py-1 rounded text-xs">{{ $article->saison->nom ?? '-' }}</span>
+                        <span class="bg-green-900/80 text-green-200 px-2 py-1 rounded text-xs">{{ $article->created_at->format('d/m/Y') }}</span>
+                        <span class="text-xs text-gray-400">par {{ $article->user->name ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
+            @if($article->video || ($article->images && $article->images->count()))
+                <div id="carousel-{{ $article->id }}" data-carousel class="relative w-full h-80 md:h-[28rem] rounded-xl overflow-hidden shadow-lg mb-8 bg-black">
+                    @if($article->video)
+                        <div data-carousel-item class="w-full h-80 md:h-[28rem] relative">
+                            <video src="{{ asset('storage/' . $article->video) }}" class="w-full h-80 md:h-[28rem] object-cover object-center rounded-xl" autoplay muted loop playsinline controls></video>
+                            <a href="{{ asset('storage/' . $article->video) }}" download class="absolute bottom-4 left-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10" title="Télécharger">⬇️ Télécharger</a>
+                            <button onclick="openMediaModal('video', '{{ asset('storage/' . $article->video) }}')" class="absolute bottom-4 right-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10" title="Zoom">🔍 Zoom</button>
+                        </div>
+                    @endif
+                    @foreach($article->images as $img)
+                        <div data-carousel-item class="w-full h-80 md:h-[28rem] relative">
+                            <img src="{{ asset('storage/' . $img->path) }}" alt="Image article" class="w-full h-80 md:h-[28rem] object-cover object-center rounded-xl" />
+                            <a href="{{ asset('storage/' . $img->path) }}" download class="absolute bottom-4 left-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10" title="Télécharger">⬇️ Télécharger</a>
+                            <button onclick="openMediaModal('image', '{{ asset('storage/' . $img->path) }}')" class="absolute bottom-4 right-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10" title="Zoom">🔍 Zoom</button>
+                        </div>
+                    @endforeach
+                    <button type="button" data-carousel-prev class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-blue-100 rounded-full p-2 shadow z-10 text-2xl">‹</button>
+                    <button type="button" data-carousel-next class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-blue-100 rounded-full p-2 shadow z-10 text-2xl">›</button>
+                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                        @if($article->video)
+                            <button type="button" data-carousel-indicator class="w-3 h-3 rounded-full border-2 border-blue-400 bg-white transition-all duration-300 opacity-100"></button>
+                        @endif
+                        @foreach($article->images as $img)
+                            <button type="button" data-carousel-indicator class="w-3 h-3 rounded-full border-2 border-blue-400 bg-white transition-all duration-300 opacity-50"></button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
-        @php $hasVideo = $article->video; $imgCount = $article->images?->count() ?? 0; @endphp
-        @if($hasVideo)
-            <div class="mb-4">
-                <video controls autoplay muted loop playsinline class="w-full rounded shadow cursor-pointer bg-black dark:bg-gray-800 border border-gray-200 dark:border-gray-700" onclick="openMediaModal('video', `{{ asset('storage/' . $article->video) }}`)">
-                    <source src="{{ asset('storage/' . $article->video) }}" type="video/mp4">
-                    Votre navigateur ne supporte pas la lecture vidéo.
-                </video>
-            </div>
-        @elseif($imgCount > 1)
-            <div id="carousel-{{ $article->id }}" class="relative mb-4 group">
-                <div class="overflow-hidden rounded-lg shadow h-64 relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                    @foreach($article->images as $i => $img)
-                        <img src="{{ asset('storage/' . $img->path) }}" alt="Image article" class="w-full h-64 object-cover absolute inset-0 transition-all duration-700 ease-in-out {{ $i === 0 ? '' : 'hidden' }} cursor-pointer" data-carousel-item onclick="openMediaModal('image', `{{ asset('storage/' . $img->path) }}`)" />
-                    @endforeach
-                </div>
-                <!-- Boutons navigation -->
-                <button type="button" aria-label="Précédent" class="absolute top-1/2 left-2 -translate-y-1/2 bg-gray-900/90 dark:bg-gray-100/80 text-white dark:text-gray-900 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 font-inter" onclick="carouselPrev({{ $article->id }})">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                </button>
-                <button type="button" aria-label="Suivant" class="absolute top-1/2 right-2 -translate-y-1/2 bg-gray-900/90 dark:bg-gray-100/80 text-white dark:text-gray-900 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 font-inter" onclick="carouselNext({{ $article->id }})">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </button>
-                <!-- Indicateurs -->
-                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                    @foreach($article->images as $i => $img)
-                        <button type="button"
-                                class="w-3 h-3 rounded-full bg-blue-400 dark:bg-blue-700 opacity-50 border-2 border-white dark:border-gray-700 transition-all duration-300"
-                                data-carousel-indicator
-                                aria-label="Aller à l'image {{ $i + 1 }}"
-                                onclick="carouselGoTo({{ $article->id }}, {{ $i }})">
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-        @elseif($imgCount === 1)
-            <img src="{{ asset('storage/' . $article->images->first()->path) }}" alt="Image article" class="w-full h-64 object-cover rounded mb-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 cursor-pointer" onerror="this.style.display='none'" onclick="openMediaModal('image', `{{ asset('storage/' . $article->images->first()->path) }}`)" />
-        @endif
-        <div class="prose dark:prose-invert max-w-none">
+        <div class="prose dark:prose-invert max-w-none text-lg leading-relaxed mb-8 text-white">
             {!! $article->contenu !!}
         </div>
         <div class="mt-8 flex gap-4">
-            <a href="{{ url()->previous() }}" class="inline-block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-bold px-6 py-2 rounded-full shadow hover:bg-primary-700 dark:hover:bg-gray-300 transition-all duration-300 font-inter">← Retour</a>
+            <a href="{{ url()->previous() }}" class="inline-block bg-[#23272a] text-white font-bold px-6 py-2 rounded-full shadow hover:bg-[#6fcf97] hover:text-[#23272a] transition-all duration-300 font-inter">← Retour</a>
         </div>
     </div>
 </div>
 @endsection
 @section('scripts')
 <script>
+// Carrousel auto-défilant moderne (images + vidéo)
+const imgCount = {{ $imgCount ?? 0 }};
+const hasVideo = @json(!empty($article->video));
+document.addEventListener('DOMContentLoaded', function() {
+    if (imgCount > 1 || hasVideo) {
+        showCarouselItem({{ $article->id }}, 0);
+        startCarouselAutoplay({{ $article->id }});
+        const carousel = document.getElementById('carousel-{{ $article->id }}');
+        if (carousel) {
+            carousel.addEventListener('mouseenter', () => stopCarouselAutoplay({{ $article->id }}));
+            carousel.addEventListener('mouseleave', () => startCarouselAutoplay({{ $article->id }}));
+            carousel.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    stopCarouselAutoplay({{ $article->id }});
+                    setTimeout(() => startCarouselAutoplay({{ $article->id }}), 4000);
+                });
+            });
+        }
+    }
+});
 function showCarouselItem(id, target) {
     const items = document.querySelectorAll(`#carousel-${id} [data-carousel-item]`);
     const indicators = document.querySelectorAll(`#carousel-${id} [data-carousel-indicator]`);
@@ -99,23 +120,6 @@ function stopCarouselAutoplay(id) {
         delete carouselIntervals[id];
     }
 }
-document.addEventListener('DOMContentLoaded', function() {
-    @if($imgCount > 1)
-        showCarouselItem({{ $article->id }}, 0);
-        startCarouselAutoplay({{ $article->id }});
-        const carousel = document.getElementById('carousel-{{ $article->id }}');
-        if (carousel) {
-            carousel.addEventListener('mouseenter', () => stopCarouselAutoplay({{ $article->id }}));
-            carousel.addEventListener('mouseleave', () => startCarouselAutoplay({{ $article->id }}));
-            carousel.querySelectorAll('button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    stopCarouselAutoplay({{ $article->id }});
-                    setTimeout(() => startCarouselAutoplay({{ $article->id }}), 4000);
-                });
-            });
-        }
-    @endif
-});
 function openMediaModal(type, src) {
     let modal = document.getElementById('media-modal');
     if (!modal) {

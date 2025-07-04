@@ -11,7 +11,7 @@ class ClassementController extends Controller
 {
     public function index()
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = \App\Models\Saison::where('active', 1)->first();
         $poules = \App\Models\Pool::with(['equipes.statsSaison' => function($q) use ($saison) {
             $q->where('saison_id', $saison?->id);
         }, 'equipes'])->orderBy('nom')->get();

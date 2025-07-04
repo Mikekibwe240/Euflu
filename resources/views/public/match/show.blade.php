@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between px-6 pt-6">
             <a href="{{ url()->previous() }}" class="text-[#6fcf97] font-bold text-sm hover:underline flex items-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                Matchday {{ $rencontre->journee ?? '-' }}
+                Journée {{ $rencontre->journee ?? '-' }}
             </a>
             <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider">{{ $rencontre->stade ?? '' }}</div>
         </div>
@@ -60,6 +60,15 @@
                                 <span class="font-bold">{{ $carton->joueur?->nom }} {{ $carton->joueur?->prenom }}</span>
                                 <span class="text-xs text-gray-400">{{ $carton->minute ? $carton->minute . "'" : '' }}</span>
                                 <span class="text-xs {{ $carton->type == 'jaune' ? 'text-yellow-400' : 'text-red-500' }}">{{ ucfirst($carton->type) }}</span>
+                                <span class="text-xs text-gray-400 ml-2">
+                                    @if($carton->equipe_id == $rencontre->equipe1?->id)
+                                        ({{ $rencontre->equipe1?->nom }})
+                                    @elseif($carton->equipe_id == $rencontre->equipe2?->id)
+                                        ({{ $rencontre->equipe2?->nom }})
+                                    @elseif($carton->equipe_libre_nom)
+                                        ({{ $carton->equipe_libre_nom }})
+                                    @endif
+                                </span>
                             </li>
                         @endforeach
                         @if($rencontre->cartons->isEmpty())
@@ -70,9 +79,36 @@
                 <div class="flex-1">
                     <div class="font-bold text-[#6fcf97] uppercase text-sm mb-1">Homme du match</div>
                     <div class="text-white text-lg font-extrabold">
-                        {{ $rencontre->mvp?->nom ?? '-' }}
+                        @if($rencontre->mvp)
+                            {{ $rencontre->mvp->nom }} {{ $rencontre->mvp->prenom }}
+                            <span class="text-xs text-gray-400">
+                                (
+                                @if($rencontre->mvp->equipe?->nom)
+                                    {{ $rencontre->mvp->equipe->nom }}
+                                @elseif($rencontre->mvp_libre_equipe)
+                                    {{ $rencontre->mvp_libre_equipe }}
+                                @else
+                                    Équipe inconnue
+                                @endif
+                                )
+                            </span>
+                        @elseif($rencontre->mvp_libre)
+                            {{ $rencontre->mvp_libre }}
+                            <span class="text-xs text-gray-400">
+                                (
+                                {{ $rencontre->mvp_libre_equipe ?? 'Équipe inconnue' }}
+                                )
+                            </span>
+                        @else
+                            -
+                        @endif
                     </div>
                 </div>
+            </div>
+            <div class="mt-4 text-xs text-gray-400 text-right">
+                @if($rencontre->updatedBy)
+                    <span>Dernière modification par : <span class="font-bold">{{ $rencontre->updatedBy->name }}</span></span>
+                @endif
             </div>
         </div>
     </div>
@@ -84,6 +120,57 @@
     </div>
     <div class="flex justify-center mt-8">
         <a href="{{ route('public.match.pdf', ['id' => $rencontre->id]) }}" class="px-8 py-3 bg-[#23272a] border-2 border-[#6fcf97] text-white font-bold rounded hover:bg-[#6fcf97] hover:text-[#23272a] transition" target="_blank">Télécharger la feuille de match (PDF)</a>
+    </div>
+    <div class="bg-[#181d1f] px-6 py-4 rounded-b-xl mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            @foreach([$rencontre->equipe1, $rencontre->equipe2] as $equipe)
+                @if($equipe)
+                    @php
+                        $effectif = \App\Models\MatchEffectif::where('rencontre_id', $rencontre->id)->where('equipe_id', $equipe->id)->first();
+                    @endphp
+                    <div>
+                        <div class="font-bold text-[#6fcf97] uppercase text-base mb-2">Effectif {{ $equipe->nom }}</div>
+                        @if($effectif)
+                            <div class="mb-2">
+                                <span class="font-semibold text-white">Titulaires :</span>
+                                <ul class="text-white text-sm space-y-1 mt-1">
+                                    @foreach($effectif->joueurs->where('type', 'titulaire')->sortBy('ordre') as $titulaire)
+                                        <li>{{ $titulaire->joueur->nom ?? '-' }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <div class="mb-2">
+                                <span class="font-semibold text-white">Remplaçants :</span>
+                                <ul class="text-white text-sm space-y-1 mt-1">
+                                    @foreach($effectif->joueurs->where('type', 'remplaçant')->sortBy('ordre') as $remplacant)
+                                        <li>{{ $remplacant->joueur->nom ?? '-' }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-white">Remplacements :</span>
+                                <ul class="text-white text-sm space-y-1 mt-1">
+                                    @forelse($effectif->remplacements as $remp)
+                                        <li>
+                                            <span class="font-bold">{{ $remp->remplaçant->nom ?? '-' }}</span>
+                                            @if(!is_null($remp->minute))
+                                                <span class="text-xs text-gray-400">{{ $remp->minute }}'</span>
+                                            @endif
+                                            <span class="text-xs">a remplacé</span>
+                                            <span class="font-bold">{{ $remp->remplacé->nom ?? '-' }}</span>
+                                        </li>
+                                    @empty
+                                        <li class="text-gray-500">Aucun remplacement</li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        @else
+                            <div class="text-gray-400 italic">Aucun effectif saisi</div>
+                        @endif
+                    </div>
+                @endif
+            @endforeach
+        </div>
     </div>
 </div>
 @endsection

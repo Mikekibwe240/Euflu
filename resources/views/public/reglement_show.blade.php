@@ -3,7 +3,7 @@
 @section('title', 'Règlement')
 
 @section('header')
-<nav class="bg-[#23272a] shadow sticky top-0 z-50 border-b-4 border-[#6fcf97] bundesliga-header">
+<nav class="bg-[#23272a] shadow sticky top
     <div class="max-w-6xl mx-auto px-4 py-0 flex items-center justify-between h-16">
         <div class="flex items-center gap-4">
             <span class="bundesliga-logo">EUFLU</span>
@@ -12,7 +12,7 @@
             <a href="/" class="px-2 py-1">Accueil</a>
             <a href="/classement" class="px-2 py-1">Classement</a>
             <a href="/matchs" class="px-2 py-1">Fixation et Résultats</a>
-            <a href="/equipes" class="px-2 py-1">Equipes</a>
+            <a href="/equipes" class="px-2 py-1">Equipes
             <a href="/joueurs" class="px-2 py-1">Joueurs</a>
             <a href="/buteurs" class="px-2 py-1">Buteurs</a>
             <a href="/articles" class="px-2 py-1">Actualités</a>

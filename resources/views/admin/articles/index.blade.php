@@ -17,12 +17,8 @@
             <select name="saison_id" class="form-select w-40">
                 <option value="">Toutes</option>
                 @foreach($saisons as $s)
-                    <option value="{{ $s->id }}" {{ request('saison_id') == $s->id ? 'selected' : '' }}>{{ $s->annee }}
-                        @if($s->etat === 'ouverte')
-                            <span class="inline-block bg-green-500 text-white text-xs px-2 py-1 rounded ml-2">En cours</span>
-                        @else
-                            <span class="inline-block bg-red-500 text-white text-xs px-2 py-1 rounded ml-2">Clôturée</span>
-                        @endif
+                    <option value="{{ $s->id }}" {{ request('saison_id') == $s->id ? 'selected' : '' }}>
+                        {{ $s->nom ?? $s->annee }}
                     </option>
                 @endforeach
             </select>

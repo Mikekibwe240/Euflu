@@ -67,9 +67,9 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         @foreach($poules as $poule)
             <div class="bg-gray-50 dark:bg-gray-900 rounded-xl shadow p-6 flex flex-col items-center gap-4">
-                <div class="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">Poule {{ $poule->nom }}</div>
-                <a href="{{ route('admin.classement', ['poule' => $poule->id]) }}" class="w-full bg-blue-600 text-white rounded-lg shadow px-4 py-2 text-center font-semibold hover:bg-blue-700 transition">Classement équipes</a>
-                <a href="{{ route('admin.classement_buteurs', ['pool' => $poule->id]) }}" class="w-full bg-yellow-500 text-white rounded-lg shadow px-4 py-2 text-center font-semibold hover:bg-yellow-600 transition">Classement buteurs</a>
+                {{-- <div class="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">Poule {{ $poule->nom }}</div> --}}
+                {{-- <a href="{{ route('admin.classement', ['poule' => $poule->id]) }}" class="w-full bg-blue-600 text-white rounded-lg shadow px-4 py-2 text-center font-semibold hover:bg-blue-700 transition">Classement équipes</a> --}}
+                {{-- <a href="{{ route('admin.classement_buteurs', ['pool' => $poule->id]) }}" class="w-full bg-yellow-500 text-white rounded-lg shadow px-4 py-2 text-center font-semibold hover:bg-yellow-600 transition">Classement buteurs</a> --}}
             </div>
         @endforeach
     </div>

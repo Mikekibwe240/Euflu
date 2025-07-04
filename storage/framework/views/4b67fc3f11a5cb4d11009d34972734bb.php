@@ -76,10 +76,10 @@
 <?php endif; ?>
     <?php endif; ?>
 
-    <form method="GET" action="<?php echo e(route('admin.rencontres.index')); ?>" class="mb-4 flex flex-wrap gap-4 items-end">
+    <form method="GET" action="<?php echo e(route('admin.rencontres.index')); ?>" class="mb-4 flex flex-wrap gap-4 items-end bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
         <div>
-            <label class="block font-semibold">Pool</label>
-            <select name="pool_id" class="form-select w-40">
+            <label class="block font-semibold text-gray-700 dark:text-gray-200">Pool</label>
+            <select name="pool_id" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
                 <option value="">Tous</option>
                 <?php if(isset($pools)): ?>
                     <?php $__currentLoopData = $pools; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pool): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -89,8 +89,8 @@
             </select>
         </div>
         <div>
-            <label class="block font-semibold">Équipe</label>
-            <select name="equipe_id" class="form-select w-40">
+            <label class="block font-semibold text-gray-700 dark:text-gray-200">Équipe</label>
+            <select name="equipe_id" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
                 <option value="">Toutes</option>
                 <?php if(isset($equipes)): ?>
                     <?php $__currentLoopData = $equipes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $equipe): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -100,23 +100,23 @@
             </select>
         </div>
         <div>
-            <label class="block font-semibold">Saison</label>
-            <select name="saison_id" class="form-select w-40">
+            <label class="block font-semibold text-gray-700 dark:text-gray-200">Saison</label>
+            <select name="saison_id" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
                 <option value="">Actuelle</option>
                 <?php if(isset($saisons)): ?>
                     <?php $__currentLoopData = $saisons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($s->id); ?>" <?php echo e(request('saison_id') == $s->id ? 'selected' : ''); ?>><?php echo e($s->annee); ?></option>
+                        <option value="<?php echo e($s->id); ?>" <?php echo e(request('saison_id') == $s->id ? 'selected' : ''); ?>><?php echo e($s->annee ?? $s->nom); ?></option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 <?php endif; ?>
             </select>
         </div>
         <div>
-            <label class="block font-semibold">Journée</label>
-            <input type="number" name="journee" value="<?php echo e(request('journee')); ?>" class="form-input w-24">
+            <label class="block font-semibold text-gray-700 dark:text-gray-200">Journée</label>
+            <input type="number" name="journee" value="<?php echo e(request('journee')); ?>" class="form-input w-24 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
         </div>
         <div>
-            <label class="block font-semibold">Type de rencontre</label>
-            <select name="type_rencontre" class="form-select w-40">
+            <label class="block font-semibold text-gray-700 dark:text-gray-200">Type de rencontre</label>
+            <select name="type_rencontre" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
                 <option value="">Tous</option>
                 <option value="championnat" <?php echo e(request('type_rencontre') == 'championnat' ? 'selected' : ''); ?>>Championnat</option>
                 <option value="amical" <?php echo e(request('type_rencontre') == 'amical' ? 'selected' : ''); ?>>Amical</option>
@@ -124,14 +124,14 @@
             </select>
         </div>
         <div>
-            <label class="block font-semibold">État du match</label>
-            <select name="etat_match" class="form-select w-40">
+            <label class="block font-semibold text-gray-700 dark:text-gray-200">État du match</label>
+            <select name="etat_match" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
                 <option value="">Tous</option>
                 <option value="joue" <?php echo e(request('etat_match') == 'joue' ? 'selected' : ''); ?>>Match joué</option>
                 <option value="non_joue" <?php echo e(request('etat_match') == 'non_joue' ? 'selected' : ''); ?>>Match non joué</option>
             </select>
         </div>
-        <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded">Rechercher</button>
+        <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-900 transition">Rechercher</button>
     </form>
 
     <div class="mb-4 flex flex-wrap gap-4 items-end">

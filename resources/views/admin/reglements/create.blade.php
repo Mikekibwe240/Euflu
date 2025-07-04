@@ -24,16 +24,6 @@
             <textarea name="contenu" id="contenu" class="form-input w-full bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" rows="6" required>{{ old('contenu') }}</textarea>
             @error('contenu')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
         </div>
-        <div>
-            <label for="saison_id" class="block font-semibold">Saison</label>
-            <select name="saison_id" id="saison_id" class="form-select w-full bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" required>
-                <option value="">Sélectionner une saison</option>
-                @foreach($saisons as $saison)
-                    <option value="{{ $saison->id }}" {{ old('saison_id') == $saison->id ? 'selected' : '' }}>{{ $saison->annee }}</option>
-                @endforeach
-            </select>
-            @error('saison_id')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-        </div>
         <div class="flex gap-4 items-center">
             <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Enregistrer</button>
             <a href="{{ route('admin.reglements.index') }}" class="ml-4 text-gray-600 hover:underline">Annuler</a>

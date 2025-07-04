@@ -60,15 +60,19 @@ class SaisonController extends Controller
             'etat' => 'ouverte',
         ]);
         \Log::info('Création d\'une saison', ['nom' => $request->nom, 'admin_id' => auth()->id()]);
-        return redirect()->route('admin.saisons.index')->with('success', 'Saison créée avec succès !');
+        return redirect()->route('admin.saisons.index')->with('success', 'La saison "' . $request->nom . '" a été créée avec succès.');
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource (fiche saison).
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        if (!auth()->user() || !auth()->user()->is_super_admin) {
+            abort(403, 'Accès réservé au super admin');
+        }
+        $saison = Saison::findOrFail($id);
+        return view('admin.saisons.show', compact('saison'));
     }
 
     /**
@@ -76,7 +80,11 @@ class SaisonController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        if (!auth()->user() || !auth()->user()->is_super_admin) {
+            abort(403, 'Accès réservé au super admin');
+        }
+        $saison = Saison::findOrFail($id);
+        return view('admin.saisons.edit', compact('saison'));
     }
 
     /**
@@ -84,7 +92,30 @@ class SaisonController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        if (!auth()->user() || !auth()->user()->is_super_admin) {
+            abort(403, 'Accès réservé au super admin');
+        }
+        $messages = [
+            'nom.required' => 'Le nom de la saison est obligatoire.',
+            'date_debut.required' => 'La date de début est obligatoire.',
+            'date_debut.date' => 'La date de début doit être une date valide.',
+            'date_fin.required' => 'La date de fin est obligatoire.',
+            'date_fin.date' => 'La date de fin doit être une date valide.',
+            'date_fin.after' => 'La date de fin doit être postérieure à la date de début.',
+        ];
+        $request->validate([
+            'nom' => 'required',
+            'date_debut' => 'required|date',
+            'date_fin' => 'required|date|after:date_debut',
+        ], $messages);
+        $saison = Saison::findOrFail($id);
+        $saison->update([
+            'nom' => $request->nom,
+            'date_debut' => $request->date_debut,
+            'date_fin' => $request->date_fin,
+        ]);
+        \Log::info('Modification d\'une saison', ['saison_id' => $saison->id, 'admin_id' => auth()->id()]);
+        return redirect()->route('admin.saisons.index')->with('success', 'La saison "' . $saison->nom . '" a été modifiée avec succès.');
     }
 
     /**
@@ -92,7 +123,13 @@ class SaisonController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        if (!auth()->user() || !auth()->user()->is_super_admin) {
+            abort(403, 'Accès réservé au super admin');
+        }
+        $saison = Saison::findOrFail($id);
+        $saison->delete();
+        \Log::info('Suppression d\'une saison', ['saison_id' => $id, 'admin_id' => auth()->id()]);
+        return redirect()->route('admin.saisons.index')->with('success', 'La saison "' . $saison->nom . '" a été supprimée avec succès.');
     }
 
     /**
@@ -106,7 +143,7 @@ class SaisonController extends Controller
         $saison->etat = 'cloturee';
         $saison->save();
         \Log::info('Clôture d\'une saison', ['saison_id' => $saison->id, 'admin_id' => auth()->id()]);
-        return redirect()->route('admin.saisons.index')->with('success', 'Saison clôturée avec succès !');
+        return redirect()->route('admin.saisons.index')->with('success', 'La saison "' . $saison->nom . '" a été clôturée avec succès.');
     }
 
     /**
@@ -121,7 +158,7 @@ class SaisonController extends Controller
         Saison::where('id', '!=', $saison->id)->update(['active' => 0]);
         $saison->active = 1;
         $saison->save();
-        return redirect()->route('admin.saisons.index')->with('success', 'Saison activée.');
+        return redirect()->route('admin.saisons.index')->with('success', 'La saison "' . $saison->nom . '" a été activée.');
     }
 
     /**
@@ -134,6 +171,6 @@ class SaisonController extends Controller
         }
         $saison->active = 0;
         $saison->save();
-        return redirect()->route('admin.saisons.index')->with('success', 'Saison désactivée.');
+        return redirect()->route('admin.saisons.index')->with('success', 'La saison "' . $saison->nom . '" a été désactivée.');
     }
 }

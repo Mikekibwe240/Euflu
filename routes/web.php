@@ -19,6 +19,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::patch('/saisons/{saison}/activate', [App\Http\Controllers\Admin\SaisonController::class, 'activate'])->name('saisons.activate');
     Route::patch('/saisons/{saison}/deactivate', [App\Http\Controllers\Admin\SaisonController::class, 'deactivate'])->name('saisons.deactivate');
     Route::post('/saisons', [App\Http\Controllers\Admin\SaisonController::class, 'store'])->name('saisons.store');
+    Route::get('/saisons/{saison}/edit', [App\Http\Controllers\Admin\SaisonController::class, 'edit'])->name('saisons.edit');
+    Route::put('/saisons/{saison}', [App\Http\Controllers\Admin\SaisonController::class, 'update'])->name('saisons.update');
+    Route::delete('/saisons/{saison}', [App\Http\Controllers\Admin\SaisonController::class, 'destroy'])->name('saisons.destroy');
+    Route::get('/saisons/{saison}', [App\Http\Controllers\Admin\SaisonController::class, 'show'])->name('saisons.show');
     Route::get('/equipes', [App\Http\Controllers\Admin\EquipeController::class, 'index'])->name('equipes.index');
     Route::get('/equipes/create', [App\Http\Controllers\Admin\EquipeController::class, 'create'])->name('equipes.create');
     Route::get('/equipes/{equipe}/edit', [App\Http\Controllers\Admin\EquipeController::class, 'edit'])->name('equipes.edit');
@@ -86,29 +90,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Route pour afficher la fiche d'un règlement (admin)
     Route::get('reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'show'])
         ->name('reglements.show');
-    Route::get('/classement', function() {
-        $poules = \App\Models\Pool::with(['equipes', 'equipes.statsSaison'])->get();
-        foreach ($poules as $poule) {
-            $classement = $poule->equipes->map(function($eq) {
-                $stats = $eq->statsSaison()->first();
-                return (object) [
-                    'equipe' => $eq,
-                    'mj' => $stats?->mj ?? 0,
-                    'mg' => $stats?->victoires ?? 0,
-                    'mp' => $stats?->defaites ?? 0,
-                    'mn' => $stats?->nuls ?? 0,
-                    'bp' => $stats?->buts_pour ?? 0,
-                    'bc' => $stats?->buts_contre ?? 0,
-                    'gd' => ($stats?->buts_pour ?? 0) - ($stats?->buts_contre ?? 0),
-                    'points' => $stats?->points ?? 0,
-                    'qualifie' => $stats?->qualifie ?? false,
-                    'relegue' => $stats?->relegue ?? false,
-                ];
-            })->sortByDesc('points')->values();
-            $poule->classement = $classement;
-        }
-        return view('admin.classement', compact('poules'));
-    })->name('classement');
+    Route::get('/classement', [\App\Http\Controllers\Admin\ClassementAdminController::class, 'index'])->name('classement');
 
     Route::get('/transferts', [App\Http\Controllers\Admin\TransfertController::class, 'index'])->name('transferts.index');
     Route::post('/transferts', [App\Http\Controllers\Admin\TransfertController::class, 'store'])->name('transferts.store');
@@ -116,6 +98,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/joueurs/{joueur}/affecter-equipe', [App\Http\Controllers\Admin\JoueurController::class, 'affecterEquipe'])->name('joueurs.affecterEquipe');
     Route::post('/equipes/{equipe}/ajouter-joueur', [App\Http\Controllers\Admin\EquipeController::class, 'affecterJoueur'])->name('equipes.ajouterJoueur');
     Route::get('/classement-buteurs/{pool}', [\App\Http\Controllers\Admin\ClassementButeursAdminController::class, 'index'])->name('classement_buteurs');
+    // Suppression d'un média d'un article (image ou vidéo)
+    Route::delete('/articles/{article}/remove-media', [\App\Http\Controllers\Admin\ArticleController::class, 'removeMedia'])->name('articles.removeMedia');
 });
 
 // Auth routes classiques (login/logout)
@@ -136,6 +120,13 @@ Route::prefix('joueurs')->name('public.joueurs.')->group(function () {
     Route::get('/', [App\Http\Controllers\Public\JoueurController::class, 'search'])->name('search');
     Route::get('/{id}', [App\Http\Controllers\Public\JoueurController::class, 'show'])->name('show');
 });
+// Route publique pour la page joueurs (header + footer seulement)
+// Route::get('/joueurs', function() {
+//     return view('public.joueurs');
+// })->name('public.joueurs');
+
+// Route publique correcte pour la liste des joueurs (avec variables nécessaires)
+Route::get('/joueurs', [App\Http\Controllers\Public\JoueurController::class, 'index'])->name('public.joueurs');
 Route::get('/classement', [App\Http\Controllers\Public\ClassementController::class, 'index'])->name('public.classement');
 Route::get('/equipes-par-poule', [App\Http\Controllers\Public\EquipesParPouleController::class, 'index'])->name('public.equipesParPoule');
 // Route publique pour la liste des matchs
@@ -148,7 +139,7 @@ Route::get('/articles/{id}', [\App\Http\Controllers\Public\ArticleController::cl
 Route::get('/reglements', [App\Http\Controllers\Public\ReglementController::class, 'index'])->name('public.reglements.index');
 Route::get('/reglements/{id}', [App\Http\Controllers\Public\ReglementController::class, 'show'])->name('public.reglements.show');
 // Page publique des buteurs
-Route::view('/buteurs', 'public.buteurs')->name('public.buteurs');
+Route::get('/buteurs', [\App\Http\Controllers\Public\ClassementButeursController::class, 'index'])->name('public.buteurs');
 // Page publique des vidéos
 Route::view('/videos', 'public.videos')->name('public.videos');
 // Page publique des stats
@@ -157,11 +148,7 @@ Route::view('/stats', 'public.stats')->name('public.stats');
 Route::view('/awards', 'public.awards')->name('public.awards');
 // Génération PDF publique d'une feuille de match
 Route::get('/matchs/{id}/pdf', [\App\Http\Controllers\MatchPublicController::class, 'pdf'])->name('public.match.pdf');
-Route::get('/equipes', function() {
-    $saison = \App\Models\Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
-    $pools = $saison ? $saison->pools()->with('equipes')->orderBy('nom')->get() : collect();
-    return view('public.equipes', compact('pools', 'saison'));
-})->name('public.equipes');
+Route::get('/equipes', [App\Http\Controllers\Public\EquipeController::class, 'index'])->name('public.equipes');
 
 // Route publique pour afficher une équipe (doit être placée APRÈS les routes admin pour éviter les conflits)
 Route::get('/equipes/{equipe}', [App\Http\Controllers\EquipePublicController::class, 'show'])->name('equipes.show');

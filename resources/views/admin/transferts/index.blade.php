@@ -2,141 +2,65 @@
 
 @section('title', 'Transferts de joueurs')
 
-@section('header')
-    Gestion des Transferts
-@endsection
-
 @section('content')
-<div class="container mx-auto py-8">
-    <button onclick="window.history.back()" class="mb-4 inline-block bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 transition">← Retour</button>
-    <h2 class="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-6">Transferts de joueurs</h2>
-    <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-8">
-        @if(session('success'))
-            <x-alert type="success" :message="session('success')" />
-        @endif
-        @if(session('error'))
-            <x-alert type="error" :message="session('error')" />
-        @endif
-        <div class="mb-6 flex flex-col md:flex-row gap-6">
-            <div class="flex-1">
-                <h3 class="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">Transférer un joueur</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">Sélectionnez un joueur d'une équipe pour le transférer vers une autre équipe ou le rendre libre.</p>
-                <form action="{{ route('admin.transferts.store') }}" method="POST" class="flex flex-col gap-4">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="pool_select" class="block font-semibold mb-1">Poule</label>
-                        <select id="pool_select" class="p-2 border rounded w-full dark:bg-gray-700 dark:text-white mb-2">
-                            <option value="">Sélectionner une poule</option>
-                            <option value="libre">Libre</option>
-                            @foreach($pools as $pool)
-                                <option value="{{ $pool->id }}">{{ $pool->nom }}</option>
-                            @endforeach
-                        </select>
-                        <label for="equipe_select" class="block font-semibold mb-1">Équipe</label>
-                        <select id="equipe_select" class="p-2 border rounded w-full dark:bg-gray-700 dark:text-white mb-2">
-                            <option value="">Sélectionner une équipe</option>
-                        </select>
-                    </div>
-                    <div>
-                        <x-input-label for="joueur_id" value="Joueur à transférer" />
-                        <select name="joueur_id" id="joueur_id" class="p-2 border rounded w-full dark:bg-gray-700 dark:text-white" required>
-                            <option value="">Sélectionner un joueur</option>
-                        </select>
-                    </div>
-                    <div>
-                        <x-input-label for="equipe_id" value="Nouvelle équipe (ou libre)" />
-                        <select name="equipe_id" id="equipe_id" class="p-2 border rounded w-full dark:bg-gray-700 dark:text-white">
-                            <option value="">Libre (sans équipe)</option>
-                            @foreach($equipes as $equipe)
-                                <option value="{{ $equipe->id }}">{{ $equipe->nom }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <x-primary-button class="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-bold shadow-lg">Transférer</x-primary-button>
-                </form>
-            </div>
-            <div class="flex-1 border-l border-gray-200 dark:border-gray-700 pl-6">
-                <h3 class="text-lg font-bold text-green-700 dark:text-green-300 mb-2">Affecter un joueur libre</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">Sélectionnez un joueur sans équipe pour l'affecter à une équipe.</p>
-                <form action="{{ route('admin.transferts.store') }}" method="POST" class="flex flex-col gap-4">
-                    @csrf
-                    <div>
-                        <x-input-label for="joueur_libre_id" value="Joueur libre" />
-                        <select name="joueur_id" id="joueur_libre_id" class="p-2 border rounded w-full dark:bg-gray-700 dark:text-white" required>
-                            <option value="">Sélectionner un joueur libre</option>
-                            @foreach($joueurs->where('equipe_id', null) as $joueur)
-                                <option value="{{ $joueur->id }}">
-                                    {{ $joueur->nom }} {{ $joueur->prenom }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <x-input-label for="equipe_libre_id" value="Équipe à affecter" />
-                        <select name="equipe_id" id="equipe_libre_id" class="p-2 border rounded w-full dark:bg-gray-700 dark:text-white" required>
-                            <option value="">Sélectionner une équipe</option>
-                            @foreach($equipes as $equipe)
-                                <option value="{{ $equipe->id }}">{{ $equipe->nom }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <x-primary-button class="bg-gradient-to-r from-green-600 to-green-400 hover:from-green-700 hover:to-green-500 text-white font-bold shadow-lg">Affecter</x-primary-button>
-                </form>
-            </div>
+<div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-2xl font-bold mb-6">Transferts de joueurs</h1>
+    @if(session('success'))
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded">{{ session('success') }}</div>
+    @endif
+    <form method="POST" action="{{ route('admin.transferts.store') }}" class="space-y-6">
+        @csrf
+        <div>
+            <label class="block font-semibold mb-2">Rechercher un joueur à transférer</label>
+            <input type="text" name="joueur_search" id="joueur_search" placeholder="Nom, prénom..." autocomplete="off" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+            <div id="joueur_results" class="mt-2"></div>
         </div>
-        <div class="mt-8">
-            <h4 class="text-md font-semibold text-gray-700 dark:text-gray-200 mb-2">Conseils d'utilisation :</h4>
-            <ul class="list-disc pl-6 text-gray-600 dark:text-gray-400 text-sm">
-                <li>Pour libérer un joueur, sélectionnez-le dans la colonne de gauche et choisissez "Libre (sans équipe)".</li>
-                <li>Pour transférer un joueur, sélectionnez-le dans la colonne de gauche et choisissez une nouvelle équipe.</li>
-                <li>Pour affecter un joueur libre, utilisez la colonne de droite.</li>
-            </ul>
+        <div>
+            <label class="block font-semibold mb-2">Nouvelle équipe (ou libre)</label>
+            <input type="text" name="equipe_search" id="equipe_search" placeholder="Nom de l'équipe... ou tapez 'libre'" autocomplete="off" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+            <div id="equipe_results" class="mt-2"></div>
         </div>
-    </div>
+        <input type="hidden" name="joueur_id" id="joueur_id">
+        <input type="hidden" name="equipe_id" id="equipe_id">
+        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">Valider le transfert</button>
+    </form>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const poolSelect = document.getElementById('pool_select');
-    const equipeSelect = document.getElementById('equipe_select');
-    const joueurSelect = document.getElementById('joueur_id');
-    const pools = @json($pools);
-    const equipes = @json($equipes);
-
-    function updateEquipes() {
-        const poolId = poolSelect.value;
-        equipeSelect.innerHTML = '<option value="">Sélectionner une équipe</option>';
-        joueurSelect.innerHTML = '<option value="">Sélectionner un joueur</option>';
-        if (!poolId) return;
-        if (poolId === 'libre') {
-            // Afficher uniquement les équipes libres (pool_id null)
-            equipes.filter(e => !e.pool_id).forEach(equipe => {
-                equipeSelect.innerHTML += `<option value="${equipe.id}">${equipe.nom}</option>`;
-            });
-            return;
-        }
-        const pool = pools.find(p => p.id == poolId);
-        if (!pool) return;
-        pool.equipes.forEach(equipe => {
-            equipeSelect.innerHTML += `<option value="${equipe.id}">${equipe.nom}</option>`;
-        });
-    }
-    function updateJoueurs() {
-        const poolId = poolSelect.value;
-        const equipeId = equipeSelect.value;
-        joueurSelect.innerHTML = '<option value="">Sélectionner un joueur</option>';
-        if (!poolId || !equipeId) return;
-        const pool = pools.find(p => p.id == poolId);
-        if (!pool) return;
-        const equipe = pool.equipes.find(e => e.id == equipeId);
-        if (!equipe) return;
-        equipe.joueurs.forEach(joueur => {
-            joueurSelect.innerHTML += `<option value="${joueur.id}">${joueur.nom} ${joueur.prenom}</option>`;
-        });
-    }
-    if (poolSelect && equipeSelect && joueurSelect) {
-        poolSelect.addEventListener('change', updateEquipes);
-        equipeSelect.addEventListener('change', updateJoueurs);
-    }
+// Correction robuste : préparer les tableaux JSON côté contrôleur Laravel (pas dans la vue)
+const joueurs = @json($joueurs_json);
+const equipes = @json($equipes_json);
+function renderJoueurResults(list) {
+    return list.length ? list.map(j => `<div class='flex items-center gap-3 p-2 hover:bg-gray-100 cursor-pointer' onclick='selectJoueur(${j.id})'>${j.photo?`<img src='/storage/${j.photo}' class='h-8 w-8 rounded-full object-cover'>`:`<div class='h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center'><svg xmlns='http://www.w3.org/2000/svg' fill='#b0b0b0' viewBox='0 0 24 24' class='h-6 w-6'><circle cx='12' cy='8' r='4'/><path d='M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z'/></svg></div>`}<span class='font-bold'>${j.nom}</span> <span>${j.prenom}</span> <span class='text-xs text-gray-500 ml-2'>${j.equipe?j.equipe.nom:'Libre'}</span></div>`).join('') : "<div class='text-gray-500 p-2'>Aucun joueur trouvé</div>";
+}
+function renderEquipeResults(list) {
+    return list.length ? list.map(e => `<div class='flex items-center gap-3 p-2 hover:bg-gray-100 cursor-pointer' onclick='selectEquipe(${e.id})'>${e.logo?`<img src='/storage/${e.logo}' class='h-8 w-8 rounded-full object-cover'>`:`<span class='inline-flex items-center justify-center h-8 w-8 rounded-full bg-[#23272a]'><svg xmlns='http://www.w3.org/2000/svg' fill='#e2001a' viewBox='0 0 24 24' style='height:16px;width:16px;'><circle cx='12' cy='12' r='10' fill='#23272a'/><path d='M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z' fill='#e2001a'/><circle cx='12' cy='12' r='3' fill='#fff'/></svg></span>`}<span class='font-bold'>${e.nom}</span></div>`).join('') : "<div class='text-gray-500 p-2'>Aucune équipe trouvée</div>";
+}
+document.getElementById('joueur_search').addEventListener('input', function() {
+    const val = this.value.toLowerCase();
+    const filtered = joueurs.filter(j => j.nom.toLowerCase().includes(val) || j.prenom.toLowerCase().includes(val));
+    document.getElementById('joueur_results').innerHTML = renderJoueurResults(filtered);
 });
+window.selectJoueur = function(id) {
+    const j = joueurs.find(j => j.id === id);
+    document.getElementById('joueur_id').value = j.id;
+    document.getElementById('joueur_search').value = j.nom + ' ' + j.prenom;
+    document.getElementById('joueur_results').innerHTML = '';
+};
+document.getElementById('equipe_search').addEventListener('input', function() {
+    const val = this.value.toLowerCase();
+    if(val === 'libre') {
+        document.getElementById('equipe_id').value = '';
+        document.getElementById('equipe_results').innerHTML = `<div class='flex items-center gap-3 p-2 bg-yellow-100 rounded'><span class='font-bold text-yellow-700'>Libre (sans équipe)</span></div>`;
+        return;
+    }
+    const filtered = equipes.filter(e => e.nom.toLowerCase().includes(val));
+    document.getElementById('equipe_results').innerHTML = renderEquipeResults(filtered);
+});
+window.selectEquipe = function(id) {
+    const e = equipes.find(e => e.id === id);
+    document.getElementById('equipe_id').value = e.id;
+    document.getElementById('equipe_search').value = e.nom;
+    document.getElementById('equipe_results').innerHTML = '';
+};
 </script>
 @endsection

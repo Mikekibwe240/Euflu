@@ -19,37 +19,31 @@
             {!! nl2br(e($article->contenu)) !!}
         </div>
         @php $imgCount = $article->images?->count() ?? 0; @endphp
-        @if($article->video)
-            <div class="mb-4 flex justify-center">
-                <video controls class="w-full max-w-lg rounded-xl shadow cursor-pointer" onclick="openMediaModal('video', '{{ asset('storage/' . $article->video) }}')">
-                    <source src="{{ asset('storage/' . $article->video) }}" type="video/mp4">
-                    Vidéo non supportée.
-                </video>
-            </div>
-        @endif
-        @if($imgCount > 1)
-            <div id="carousel-admin-{{ $article->id }}" class="relative mb-4 group">
-                <div class="overflow-hidden rounded-lg shadow h-64 relative">
-                    @foreach($article->images as $i => $img)
-                        <img src="{{ asset('storage/' . $img->path) }}" alt="Image article" class="w-full h-64 object-cover absolute inset-0 transition-all duration-700 ease-in-out {{ $i === 0 ? '' : 'hidden' }} cursor-pointer" data-carousel-item onclick="openMediaModal('image', '{{ asset('storage/' . $img->path) }}')" />
-                    @endforeach
-                </div>
-                <button type="button" aria-label="Précédent" class="absolute top-1/2 left-2 -translate-y-1/2 bg-white/90 hover:bg-blue-100 dark:bg-gray-900/80 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" onclick="carouselPrevAdmin({{ $article->id }})">
-                    <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                </button>
-                <button type="button" aria-label="Suivant" class="absolute top-1/2 right-2 -translate-y-1/2 bg-white/90 hover:bg-blue-100 dark:bg-gray-900/80 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" onclick="carouselNextAdmin({{ $article->id }})">
-                    <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </button>
-                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                    @foreach($article->images as $i => $img)
-                        <button type="button" aria-label="Aller à l'image {{ $i+1 }}" class="w-3 h-3 rounded-full border-2 border-blue-400 bg-white transition-all duration-300" style="opacity:{{ $i === 0 ? '1' : '0.5' }}" data-carousel-indicator onclick="carouselGoToAdmin({{ $article->id }}, {{ $i }})"></button>
+        @if($article->video || ($article->images && $article->images->count()))
+        <div class="mb-6">
+            <div data-carousel class="relative w-full max-w-xl mx-auto rounded-xl overflow-hidden shadow bg-black">
+                @if($article->video)
+                    <div data-carousel-item class="w-full h-80 md:h-[28rem]">
+                        <video src="{{ asset('storage/' . $article->video) }}" class="w-full h-80 md:h-[28rem] object-cover object-center rounded-xl" autoplay muted loop playsinline controls></video>
+                    </div>
+                @endif
+                @foreach($article->images as $img)
+                    <div data-carousel-item class="w-full h-80 md:h-[28rem]">
+                        <img src="{{ asset('storage/' . $img->path) }}" class="w-full h-80 md:h-[28rem] object-cover object-center rounded-xl" />
+                    </div>
+                @endforeach
+                <button type="button" data-carousel-prev class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-blue-100 rounded-full p-2 shadow z-10 text-2xl">‹</button>
+                <button type="button" data-carousel-next class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-blue-100 rounded-full p-2 shadow z-10 text-2xl">›</button>
+                <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                    @if($article->video)
+                        <button type="button" data-carousel-indicator class="w-3 h-3 rounded-full border-2 border-blue-400 bg-white transition-all duration-300 opacity-100"></button>
+                    @endif
+                    @foreach($article->images as $img)
+                        <button type="button" data-carousel-indicator class="w-3 h-3 rounded-full border-2 border-blue-400 bg-white transition-all duration-300 opacity-50"></button>
                     @endforeach
                 </div>
             </div>
-        @elseif($imgCount === 1)
-            <div class="mb-4 flex justify-center">
-                <img src="{{ asset('storage/' . $article->images->first()->path) }}" alt="Image principale" class="rounded-xl max-w-full h-64 border border-gray-200 dark:border-gray-700 bg-white shadow" onerror="this.style.display='none'" />
-            </div>
+        </div>
         @endif
         <div class="flex gap-2 mb-6">
             <a href="{{ route('admin.articles.edit', $article) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow">Modifier</a>
@@ -126,6 +120,38 @@ document.addEventListener('DOMContentLoaded', function() {
     @if($imgCount > 1)
         showCarouselItemAdmin({{ $article->id }}, 0);
     @endif
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-carousel]')?.forEach(function(carousel) {
+        let slides = carousel.querySelectorAll('[data-carousel-item]');
+        let indicators = carousel.querySelectorAll('[data-carousel-indicator]');
+        let current = 0;
+        let interval = null;
+        function showSlide(idx) {
+            slides.forEach((el, i) => {
+                el.classList.toggle('hidden', i !== idx);
+                if (indicators[i]) indicators[i].style.opacity = (i === idx ? '1' : '0.5');
+            });
+            current = idx;
+        }
+        function nextSlide() {
+            showSlide((current + 1) % slides.length);
+        }
+        function prevSlide() {
+            showSlide((current - 1 + slides.length) % slides.length);
+        }
+        indicators.forEach((btn, i) => {
+            btn.addEventListener('click', () => showSlide(i));
+        });
+        carousel.querySelector('[data-carousel-next]')?.addEventListener('click', nextSlide);
+        carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', prevSlide);
+        showSlide(0);
+        interval = setInterval(nextSlide, 5000);
+        carousel.addEventListener('mouseenter', () => clearInterval(interval));
+        carousel.addEventListener('mouseleave', () => interval = setInterval(nextSlide, 5000));
+    });
 });
 </script>
 @endsection

@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="fr" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }"
+<html lang="fr" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarOpen: false }"
       x-init="if(localStorage.getItem('darkMode') === null){localStorage.setItem('darkMode', false)}; $watch('darkMode', value => { if(value){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}); if(darkMode){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}">
 <head>
     <meta charset="UTF-8">
@@ -25,12 +25,14 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 transition-colors duration-300">
-    <div class="flex h-screen">
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 transition-colors duration-300" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarOpen: false }"
+      x-init="if(localStorage.getItem('darkMode') === null){localStorage.setItem('darkMode', false)}; $watch('darkMode', value => { if(value){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}); if(darkMode){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}">
+    <div class="flex h-screen flex-col md:flex-row">
         <!-- Sidebar -->
-        <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col">
-            <div class="p-6 text-2xl font-extrabold text-blue-700 dark:text-blue-300 tracking-tight border-b border-gray-200 dark:border-gray-700">
+        <aside class="w-64 max-w-full md:w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col fixed md:static z-40 h-screen md:h-auto md:min-h-screen top-0 left-0 transition-transform duration-300 md:translate-x-0" :class="{ '-translate-x-full': !sidebarOpen, 'translate-x-0': sidebarOpen }">
+            <div class="p-6 text-2xl font-extrabold text-blue-700 dark:text-blue-300 tracking-tight border-b border-gray-200 dark:border-gray-700 flex justify-between items-center md:block">
                 <span class="">EUFLU</span>
+                <button class="md:hidden text-2xl" @click="sidebarOpen = false">&times;</button>
             </div>
             <nav class="flex-1 mt-6 space-y-2 px-4">
                 <a href="/admin" class="block py-2.5 px-4 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 font-medium transition text-gray-800 dark:text-gray-100">Dashboard</a>
@@ -42,13 +44,16 @@
                 <a href="/admin/articles" class="block py-2.5 px-4 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 font-medium transition text-gray-800 dark:text-gray-100">Articles</a>
                 <a href="/admin/reglements" class="block py-2.5 px-4 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 font-medium transition text-gray-800 dark:text-gray-100">Règlements</a>
                 <a href="/admin/users" class="block py-2.5 px-4 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 font-medium transition text-gray-800 dark:text-gray-100">Utilisateurs</a>
-                
+                <a href="/admin/classement" class="block py-2.5 px-4 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 font-medium transition text-blue-800 dark:text-blue-200">Classement équipes</a>
             </nav>
         </aside>
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col md:ml-64">
             <!-- Header -->
-            <header class="flex items-center justify-between bg-white dark:bg-gray-800 shadow px-8 py-4 border-b border-gray-200 dark:border-gray-700">
-                <div class="text-lg font-semibold text-gray-800 dark:text-white"><?php echo $__env->yieldContent('header', 'Tableau de bord'); ?></div>
+            <header class="flex items-center justify-between bg-white dark:bg-gray-800 shadow px-4 md:px-8 py-4 border-b border-gray-200 dark:border-gray-700 w-full">
+                <div class="flex items-center gap-2">
+                    <button class="md:hidden text-2xl mr-2" @click="sidebarOpen = true">&#9776;</button>
+                    <div class="text-lg font-semibold text-gray-800 dark:text-white"><?php echo $__env->yieldContent('header', 'Tableau de bord'); ?></div>
+                </div>
                 <div class="flex items-center gap-4">
                     <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" class="p-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition">
                         <span x-show="!darkMode">🌙</span>

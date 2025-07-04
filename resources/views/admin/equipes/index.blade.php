@@ -63,9 +63,15 @@
             <td class="py-2 px-4 text-center">
                 <span class="inline-flex items-center justify-center h-10 w-10 rounded-full border border-gray-200 dark:border-gray-700 overflow-hidden bg-white align-middle">
                     @if($equipe->logo)
-                        <img src="{{ asset('storage/' . $equipe->logo) }}" alt="Logo" class="h-10 w-10 object-cover block" style="object-fit:cover;object-position:center;" onerror="this.style.display='none'; this.parentNode.innerHTML='<span class=\'flex h-10 w-10 rounded-full bg-blue-100 text-blue-700 font-bold items-center justify-center\'>{{ strtoupper(substr($equipe->nom,0,1)) }}</span>'">
+                        <img src="{{ asset('storage/' . $equipe->logo) }}" alt="Logo" class="h-10 w-10 object-cover block" style="object-fit:cover;object-position:center;" onerror="this.style.display='none'; this.parentNode.innerHTML='<span class=\'inline-flex items-center justify-center h-10 w-10 rounded-full bg-[#23272a]\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#e2001a\' viewBox=\'0 0 24 24\' style=\'height:20px;width:20px;\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'#23272a\'/><path d=\'M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z\' fill=\'#e2001a\'/><circle cx=\'12\' cy=\'12\' r=\'3\' fill=\'#fff\'/></svg></span>'">
                     @else
-                        <span class="flex h-10 w-10 rounded-full bg-blue-100 text-blue-700 font-bold items-center justify-center">{{ strtoupper(substr($equipe->nom,0,1)) }}</span>
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-[#23272a]">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#e2001a" viewBox="0 0 24 24" style="height:20px;width:20px;">
+                                <circle cx="12" cy="12" r="10" fill="#23272a"/>
+                                <path d="M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z" fill="#e2001a"/>
+                                <circle cx="12" cy="12" r="3" fill="#fff"/>
+                            </svg>
+                        </span>
                     @endif
                 </span>
             </td>

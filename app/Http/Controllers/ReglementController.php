@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reglement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\SaisonHelper;
 
 class ReglementController extends Controller
 {
@@ -13,10 +14,11 @@ class ReglementController extends Controller
      */
     public function index(Request $request)
     {
+        $saison = SaisonHelper::getActiveSaison($request);
         $saisons = \App\Models\Saison::orderByDesc('date_debut')->get();
         $query = Reglement::with(['saison', 'user', 'updatedBy']);
-        if ($request->filled('saison_id')) {
-            $query->where('saison_id', $request->saison_id);
+        if ($saison) {
+            $query->where('saison_id', $saison->id);
         }
         if ($request->filled('titre')) {
             $query->where('titre', 'like', '%' . $request->titre . '%');
@@ -37,7 +39,7 @@ class ReglementController extends Controller
             });
         }
         $reglements = $query->orderByDesc('created_at')->paginate(10);
-        return view('admin.reglements.index', compact('reglements', 'saisons'));
+        return view('admin.reglements.index', compact('reglements', 'saisons', 'saison'));
     }
 
     /**
@@ -57,10 +59,15 @@ class ReglementController extends Controller
         $request->validate([
             'titre' => 'required|string|max:255',
             'contenu' => 'required|string',
-            'saison_id' => 'required|exists:saisons,id',
         ]);
-        $data = $request->only(['titre', 'contenu', 'saison_id']);
+        // Find active season, fallback to 2024-2025 if not found
+        $activeSaison = \App\Models\Saison::where('active', 1)->first();
+        if (!$activeSaison) {
+            $activeSaison = \App\Models\Saison::where('nom', '2024-2025')->first();
+        }
+        $data = $request->only(['titre', 'contenu']);
         $data['user_id'] = Auth::id();
+        $data['saison_id'] = $activeSaison ? $activeSaison->id : null;
         $reglement = Reglement::create($data);
         return redirect()->route('admin.reglements.index')->with('success', 'Règlement ajouté avec succès.');
     }
@@ -91,10 +98,15 @@ class ReglementController extends Controller
         $request->validate([
             'titre' => 'required|string|max:255',
             'contenu' => 'required|string',
-            'saison_id' => 'required|exists:saisons,id',
         ]);
-        $data = $request->only(['titre', 'contenu', 'saison_id']);
+        // Find active season, fallback to 2024-2025 if not found
+        $activeSaison = \App\Models\Saison::where('active', 1)->first();
+        if (!$activeSaison) {
+            $activeSaison = \App\Models\Saison::where('nom', '2024-2025')->first();
+        }
+        $data = $request->only(['titre', 'contenu']);
         $data['updated_by'] = Auth::id();
+        $data['saison_id'] = $activeSaison ? $activeSaison->id : null;
         $reglement->update($data);
         return redirect()->route('admin.reglements.index')->with('success', 'Règlement modifié avec succès.');
     }

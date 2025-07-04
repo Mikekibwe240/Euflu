@@ -82,9 +82,14 @@
                 <?php if($meilleur): ?>
                     <div class="flex items-center gap-3">
                         <?php if($meilleur->photo): ?>
-                            <img src="<?php echo e(asset('storage/' . $meilleur->photo)); ?>" alt="Photo <?php echo e($meilleur->nom); ?>" class="h-12 w-12 rounded-full object-cover border border-gray-200 bg-white" onerror="this.style.display='none'">
+                            <img src="<?php echo e(asset('storage/' . $meilleur->photo)); ?>" alt="Photo <?php echo e($meilleur->nom); ?>" class="h-12 w-12 rounded-full object-cover border border-gray-200 bg-white">
                         <?php else: ?>
-                            <span class="flex h-12 w-12 rounded-full bg-blue-100 text-blue-700 font-bold items-center justify-center text-xl"><?php echo e(strtoupper(substr($meilleur->nom,0,1))); ?></span>
+                            <div class="h-12 w-12 rounded-full bg-gray-700 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-10 w-10">
+                                    <circle cx="12" cy="8" r="4"/>
+                                    <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
+                                </svg>
+                            </div>
                         <?php endif; ?>
                         <span class="font-semibold text-white text-lg"><?php echo e($meilleur->nom); ?> <?php echo e($meilleur->prenom); ?></span>
                         <span class="text-[#6fcf97] font-bold text-lg"><?php echo e($meilleur->buts->count()); ?> buts</span>
@@ -105,9 +110,14 @@
             <?php $__currentLoopData = $equipe->joueurs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $joueur): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <a href="<?php echo e(route('public.joueurs.show', $joueur->id)); ?>" class="flex items-center gap-4 bg-[#181d1f] rounded-lg p-4 hover:bg-[#23272a] transition group border border-[#31363a]">
                     <?php if($joueur->photo): ?>
-                        <img src="<?php echo e(asset('storage/' . $joueur->photo)); ?>" alt="Photo <?php echo e($joueur->nom); ?>" class="h-12 w-12 rounded-full object-cover border border-gray-200 bg-white" onerror="this.style.display='none'">
+                        <img src="<?php echo e(asset('storage/' . $joueur->photo)); ?>" alt="Photo <?php echo e($joueur->nom); ?>" class="h-12 w-12 rounded-full object-cover border border-gray-200 bg-white">
                     <?php else: ?>
-                        <span class="flex h-12 w-12 rounded-full bg-blue-100 text-blue-700 font-bold items-center justify-center text-xl"><?php echo e(strtoupper(substr($joueur->nom,0,1))); ?></span>
+                        <div class="h-12 w-12 rounded-full bg-gray-700 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-10 w-10">
+                                <circle cx="12" cy="8" r="4"/>
+                                <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
+                            </svg>
+                        </div>
                     <?php endif; ?>
                     <div>
                         <div class="font-bold text-white text-lg group-hover:text-[#6fcf97]"><?php echo e($joueur->nom); ?> <?php echo e($joueur->prenom); ?></div>
@@ -132,7 +142,33 @@
                     <?php $__currentLoopData = $rencontres; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $match): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
                             <td class="px-4 py-3"><?php echo e(\Carbon\Carbon::parse($match->date)->format('d/m/Y')); ?></td>
-                            <td class="px-4 py-3"><?php echo e($match->equipe1_id == $equipe->id ? $match->equipe2->nom : $match->equipe1->nom); ?></td>
+                            <td class="px-4 py-3 flex items-center gap-2">
+                                <?php
+                                    $adversaire = $match->equipe1_id == $equipe->id ? $match->equipe2 : $match->equipe1;
+                                ?>
+                                <?php if (isset($component)) { $__componentOriginal5564dd85bf2706938f671f4ed6c78011 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal5564dd85bf2706938f671f4ed6c78011 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.team-logo','data' => ['team' => $adversaire,'size' => 32]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('team-logo'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['team' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($adversaire),'size' => 32]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal5564dd85bf2706938f671f4ed6c78011)): ?>
+<?php $attributes = $__attributesOriginal5564dd85bf2706938f671f4ed6c78011; ?>
+<?php unset($__attributesOriginal5564dd85bf2706938f671f4ed6c78011); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal5564dd85bf2706938f671f4ed6c78011)): ?>
+<?php $component = $__componentOriginal5564dd85bf2706938f671f4ed6c78011; ?>
+<?php unset($__componentOriginal5564dd85bf2706938f671f4ed6c78011); ?>
+<?php endif; ?>
+                                <?php echo e($adversaire->nom ?? '-'); ?>
+
+                            </td>
                             <td class="px-4 py-3 text-center">
                                 <?php if($match->score_equipe1 !== null && $match->score_equipe2 !== null): ?>
                                     <?php echo e($match->equipe1_id == $equipe->id ? $match->score_equipe1 : $match->score_equipe2); ?> - <?php echo e($match->equipe1_id == $equipe->id ? $match->score_equipe2 : $match->score_equipe1); ?>
@@ -160,6 +196,39 @@
 
 <?php $__env->startSection('scripts'); ?>
 <script src="/js/chart.umd.min.js"></script>
+<script>
+// Carrousel auto-défilant moderne (images + vidéo)
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-carousel]')?.forEach(function(carousel) {
+        let slides = carousel.querySelectorAll('[data-carousel-item]');
+        let indicators = carousel.querySelectorAll('[data-carousel-indicator]');
+        let current = 0;
+        let interval = null;
+        function showSlide(idx) {
+            slides.forEach((el, i) => {
+                el.classList.toggle('hidden', i !== idx);
+                if (indicators[i]) indicators[i].style.opacity = (i === idx ? '1' : '0.5');
+            });
+            current = idx;
+        }
+        function nextSlide() {
+            showSlide((current + 1) % slides.length);
+        }
+        function prevSlide() {
+            showSlide((current - 1 + slides.length) % slides.length);
+        }
+        indicators.forEach((btn, i) => {
+            btn.addEventListener('click', () => showSlide(i));
+        });
+        carousel.querySelector('[data-carousel-next]')?.addEventListener('click', nextSlide);
+        carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', prevSlide);
+        showSlide(0);
+        interval = setInterval(nextSlide, 5000);
+        carousel.addEventListener('mouseenter', () => clearInterval(interval));
+        carousel.addEventListener('mouseleave', () => interval = setInterval(nextSlide, 5000));
+    });
+});
+</script>
 <?php if(!empty($rencontres) && !$rencontres->isEmpty()): ?>
 <script>
     const rencontres = <?php echo json_encode($rencontres, 15, 512) ?>;

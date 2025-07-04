@@ -14,7 +14,26 @@ class TransfertController extends Controller
         $pools = \App\Models\Pool::with(['equipes.joueurs'])->get();
         $joueurs = Joueur::with('equipe')->orderBy('nom')->get();
         $equipes = Equipe::orderBy('nom')->get();
-        return view('admin.transferts.index', compact('joueurs', 'equipes', 'pools'));
+        // Préparer les tableaux JSON pour la vue (structure simple, pas de fonction anonyme fléchée)
+        $joueurs_json = [];
+        foreach ($joueurs as $j) {
+            $joueurs_json[] = [
+                'id' => $j->id,
+                'nom' => $j->nom,
+                'prenom' => $j->prenom,
+                'photo' => $j->photo,
+                'equipe' => $j->equipe ? ['nom' => $j->equipe->nom, 'logo' => $j->equipe->logo] : null
+            ];
+        }
+        $equipes_json = [];
+        foreach ($equipes as $e) {
+            $equipes_json[] = [
+                'id' => $e->id,
+                'nom' => $e->nom,
+                'logo' => $e->logo
+            ];
+        }
+        return view('admin.transferts.index', compact('joueurs', 'equipes', 'pools', 'joueurs_json', 'equipes_json'));
     }
 
     public function store(Request $request)

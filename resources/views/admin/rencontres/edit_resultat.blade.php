@@ -102,8 +102,9 @@
                 </h4>
                 <div id="cartons-equipe1-list">
                     @php
-                        $nb = old('score_equipe1', $rencontre->score_equipe1 ?? 0);
                         $cartons = $rencontre->cartons->where('equipe_id', $rencontre->equipe1->id ?? null)->values();
+                        $oldCartons = old('cartons_equipe1', []);
+                        $nb = max(count($oldCartons), $cartons->count(), 1);
                     @endphp
                     @for($i = 0; $i < $nb; $i++)
                         <div class="flex gap-2 mb-2 carton-row">
@@ -130,8 +131,9 @@
                 </h4>
                 <div id="cartons-equipe2-list">
                     @php
-                        $nb = old('score_equipe2', $rencontre->score_equipe2 ?? 0);
                         $cartons = $rencontre->cartons->where('equipe_id', $rencontre->equipe2->id ?? null)->values();
+                        $oldCartons = old('cartons_equipe2', []);
+                        $nb = max(count($oldCartons), $cartons->count(), 1);
                     @endphp
                     @for($i = 0; $i < $nb; $i++)
                         <div class="flex gap-2 mb-2 carton-row">
@@ -153,6 +155,50 @@
                 <button type="button" id="add-carton-equipe2" class="bg-yellow-600 text-white px-2 py-1 rounded">+ Ajouter carton</button>
             </div>
         </div>
+        {{-- Cartons équipe 1 (libre) --}}
+        @if($rencontre->equipe1_libre)
+            <div id="cartons-equipe1-libre-list">
+                @php
+                    $cartonsLibre = $rencontre->cartons->where('equipe_id', null)->where('equipe_libre_nom', $rencontre->equipe1_libre)->values();
+                    $oldCartonsLibre = old('cartons_equipe1_libre', []);
+                    $nbLibre = max(count($oldCartonsLibre), $cartonsLibre->count(), 0);
+                @endphp
+                @for($i = 0; $i < $nbLibre; $i++)
+                    <div class="flex gap-2 mb-2 carton-row">
+                        <input type="text" name="cartons_equipe1_libre[]" class="form-input w-1/2" placeholder="Nom (libre)" value="{{ old('cartons_equipe1_libre.'.$i, $cartonsLibre[$i]->nom_libre ?? '') }}">
+                        <select name="type_cartons_equipe1_libre[]" class="form-select w-1/4">
+                            <option value="jaune" @if(old('type_cartons_equipe1_libre.'.$i, $cartonsLibre[$i]->type ?? null)=='jaune') selected @endif>Jaune</option>
+                            <option value="rouge" @if(old('type_cartons_equipe1_libre.'.$i, $cartonsLibre[$i]->type ?? null)=='rouge') selected @endif>Rouge</option>
+                        </select>
+                        <input type="number" name="minutes_cartons_equipe1_libre[]" class="form-input w-1/4" placeholder="Minute" value="{{ old('minutes_cartons_equipe1_libre.'.$i, $cartonsLibre[$i]->minute ?? null) }}">
+                        <button type="button" class="remove-carton bg-red-500 text-white px-2 rounded">X</button>
+                    </div>
+                @endfor
+            </div>
+            <button type="button" id="add-carton-equipe1-libre" class="bg-yellow-600 text-white px-2 py-1 rounded">+ Ajouter carton libre</button>
+        @endif
+        {{-- Cartons équipe 2 (libre) --}}
+        @if($rencontre->equipe2_libre)
+            <div id="cartons-equipe2-libre-list">
+                @php
+                    $cartonsLibre = $rencontre->cartons->where('equipe_id', null)->where('equipe_libre_nom', $rencontre->equipe2_libre)->values();
+                    $oldCartonsLibre = old('cartons_equipe2_libre', []);
+                    $nbLibre = max(count($oldCartonsLibre), $cartonsLibre->count(), 0);
+                @endphp
+                @for($i = 0; $i < $nbLibre; $i++)
+                    <div class="flex gap-2 mb-2 carton-row">
+                        <input type="text" name="cartons_equipe2_libre[]" class="form-input w-1/2" placeholder="Nom (libre)" value="{{ old('cartons_equipe2_libre.'.$i, $cartonsLibre[$i]->nom_libre ?? '') }}">
+                        <select name="type_cartons_equipe2_libre[]" class="form-select w-1/4">
+                            <option value="jaune" @if(old('type_cartons_equipe2_libre.'.$i, $cartonsLibre[$i]->type ?? null)=='jaune') selected @endif>Jaune</option>
+                            <option value="rouge" @if(old('type_cartons_equipe2_libre.'.$i, $cartonsLibre[$i]->type ?? null)=='rouge') selected @endif>Rouge</option>
+                        </select>
+                        <input type="number" name="minutes_cartons_equipe2_libre[]" class="form-input w-1/4" placeholder="Minute" value="{{ old('minutes_cartons_equipe2_libre.'.$i, $cartonsLibre[$i]->minute ?? null) }}">
+                        <button type="button" class="remove-carton bg-red-500 text-white px-2 rounded">X</button>
+                    </div>
+                @endfor
+            </div>
+            <button type="button" id="add-carton-equipe2-libre" class="bg-yellow-600 text-white px-2 py-1 rounded">+ Ajouter carton libre</button>
+        @endif
         <hr>
         <h3 class="text-lg font-semibold mt-4 mb-2 text-gray-900 dark:text-gray-100">Homme du match (MVP)</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -184,7 +230,26 @@
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-4">Enregistrer</button>
         <a href="{{ route('admin.rencontres.index') }}" class="ml-4 text-gray-600 hover:underline">Annuler</a>
     </form>
+
+    <hr class="my-8">
+    <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Effectifs du match</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+            <h4 class="font-semibold mb-2 text-blue-700 dark:text-blue-300">Effectif {{ $rencontre->equipe1->nom ?? '-' }}</h4>
+            @livewire('effectif-match-form', ['matchId' => $rencontre->id, 'equipeId' => $rencontre->equipe1->id ?? null], key('effectif-'.$rencontre->id.'-'.$rencontre->equipe1->id))
+        </div>
+        <div>
+            <h4 class="font-semibold mb-2 text-blue-700 dark:text-blue-300">Effectif {{ $rencontre->equipe2->nom ?? '-' }}</h4>
+            @livewire('effectif-match-form', ['matchId' => $rencontre->id, 'equipeId' => $rencontre->equipe2->id ?? null], key('effectif-'.$rencontre->id.'-'.$rencontre->equipe2->id))
+        </div>
+    </div>
 </div>
+<div class="flex justify-end mt-8">
+    <a href="{{ route('admin.rencontres.show', $rencontre) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded shadow">
+        &#8592; Retour à la fiche de match
+    </a>
+</div>
+@endsection
 
 <script>
 window.joueursEquipe1 = @json($joueursEquipe1 ?? []);
@@ -330,4 +395,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endsection

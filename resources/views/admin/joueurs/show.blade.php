@@ -16,14 +16,22 @@
     <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-8 flex flex-col md:flex-row items-center gap-8">
         <div class="flex-shrink-0 flex flex-col items-center">
             @if($joueur->photo)
-                <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo {{ $joueur->nom }}" class="h-32 w-32 rounded-full object-cover border-4 border-blue-200 dark:border-blue-700 bg-white mb-4" onerror="this.style.display='none'">
+                <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo {{ $joueur->nom }}" class="h-32 w-32 rounded-full object-cover border-4 border-blue-200 dark:border-blue-700 bg-white mb-4" onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\'h-32 w-32 flex items-center justify-center rounded-full bg-gray-700 mb-4\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#b0b0b0\' viewBox=\'0 0 24 24\' class=\'h-24 w-24\'><circle cx=\'12\' cy=\'8\' r=\'4\'/><path d=\'M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z\'/></svg></div>'">
             @else
-                <div class="h-32 w-32 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-4xl mb-4">{{ strtoupper(substr($joueur->nom,0,2)) }}</div>
+                <div class="h-32 w-32 flex items-center justify-center rounded-full bg-gray-700 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-24 w-24">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
+                    </svg>
+                </div>
             @endif
             <div class="text-xl font-semibold text-blue-800 dark:text-blue-200">{{ $joueur->nom }} {{ $joueur->prenom }}</div>
             <div class="text-gray-500 dark:text-gray-300">Équipe : {{ $joueur->equipe->nom ?? 'Sans équipe' }}</div>
             <div class="text-gray-500 dark:text-gray-300">Poste : {{ $joueur->poste ?? '-' }}</div>
             <div class="text-gray-500 dark:text-gray-300">Date de naissance : {{ $joueur->date_naissance ?? '-' }}</div>
+            <div class="text-gray-500 dark:text-gray-300">Numéro de licence : <span class="font-mono">{{ $joueur->numero_licence ?? '-' }}</span></div>
+            <div class="text-gray-500 dark:text-gray-300">Numéro (dossard) : <span class="font-mono">{{ $joueur->numero_dossard ?? '-' }}</span></div>
+            <div class="text-gray-500 dark:text-gray-300">Nationalité : {{ $joueur->nationalite ?? '-' }}</div>
         </div>
         <div class="flex-1 w-full">
             <h2 class="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-4">Statistiques</h2>
@@ -57,17 +65,42 @@
                 </form>
             </div>
             @if(!$joueur->equipe)
-            <form action="{{ route('admin.joueurs.affecterEquipe', $joueur) }}" method="POST" class="mb-6 flex flex-col md:flex-row gap-4 items-center bg-blue-50 dark:bg-blue-900 p-4 rounded">
+            <form action="{{ route('admin.joueurs.affecterEquipe', $joueur) }}" method="POST" class="mb-6 flex flex-col md:flex-row gap-4 items-center bg-blue-50 dark:bg-blue-900 p-4 rounded relative">
                 @csrf
-                <label for="equipe_id" class="font-semibold text-blue-800 dark:text-blue-200">Affecter à une équipe :</label>
-                <select name="equipe_id" id="equipe_id" class="p-2 border rounded dark:bg-gray-700 dark:text-white" required>
-                    <option value="">Sélectionner une équipe</option>
-                    @foreach($equipes as $equipe)
-                        <option value="{{ $equipe->id }}">{{ $equipe->nom }}</option>
-                    @endforeach
-                </select>
+                <label for="equipe_search" class="font-semibold text-blue-800 dark:text-blue-200">Affecter à une équipe :</label>
+                <div class="w-full md:w-80 relative">
+                    <input type="text" name="equipe_search" id="equipe_search" placeholder="Rechercher une équipe..." autocomplete="off" class="p-2 border rounded w-full dark:bg-gray-700 dark:text-white" />
+                    <div id="equipe_results" class="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow mt-1 max-h-60 overflow-y-auto hidden"></div>
+                    <input type="hidden" name="equipe_id" id="equipe_id" required />
+                </div>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">Affecter</button>
             </form>
+            <script>
+                const equipes = @json($equipes);
+                function renderEquipeResults(list) {
+                    return list.length ? list.map(e => `<div class='flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer' onclick='selectEquipe(${e.id}, "${e.nom.replace(/"/g, '&quot;')}")'>${e.logo?`<img src='/storage/${e.logo}' class='h-8 w-8 rounded-full object-cover'>`:`<span class=\'inline-flex items-center justify-center h-8 w-8 rounded-full bg-[#23272a]\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#e2001a\' viewBox=\'0 0 24 24\' style=\'height:16px;width:16px;\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'#23272a\'/><path d=\'M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z\' fill=\'#e2001a\'/><circle cx=\'12\' cy=\'12\' r=\'3\' fill=\'#fff\'/></svg></span>`}<span class='font-bold'>${e.nom}</span></div>`).join('') : "<div class='text-gray-500 p-2'>Aucune équipe trouvée</div>";
+                }
+                const equipeInput = document.getElementById('equipe_search');
+                const equipeResults = document.getElementById('equipe_results');
+                equipeInput.addEventListener('input', function() {
+                    const val = this.value.toLowerCase();
+                    const filtered = equipes.filter(e => e.nom.toLowerCase().includes(val));
+                    equipeResults.innerHTML = renderEquipeResults(filtered);
+                    equipeResults.style.display = filtered.length ? 'block' : 'none';
+                });
+                window.selectEquipe = function(id, nom) {
+                    document.getElementById('equipe_id').value = id;
+                    document.getElementById('equipe_search').value = nom;
+                    equipeResults.innerHTML = '';
+                    equipeResults.style.display = 'none';
+                };
+                // Fermer la liste si on clique ailleurs
+                document.addEventListener('click', function(e) {
+                    if (!equipeInput.contains(e.target) && !equipeResults.contains(e.target)) {
+                        equipeResults.style.display = 'none';
+                    }
+                });
+            </script>
             @endif
             <div class="flex gap-4">
                 <a href="{{ url()->previous() }}" class="btn btn-outline-primary">← Retour</a>
@@ -75,19 +108,25 @@
             <div class="mt-8">
                 <h3 class="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">Historique des clubs</h3>
                 @if($joueur->transferts->isEmpty())
-                    <p class="text-gray-500 italic">Aucun historique de club.</p>
+                    <p class="text-gray-500 italic">Ce joueur n’a pas encore changé de club ou n’a pas d’historique de transfert.</p>
                 @else
                     <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach($joueur->transferts->sortByDesc('date') as $transfert)
                             <li class="py-2 flex items-center gap-4">
                                 <span class="text-gray-700 dark:text-gray-200">
-                                    {{ $transfert->date }} :
+                                    @php
+                                        $date = $transfert->date ? \Carbon\Carbon::parse($transfert->date)->format('d/m/Y') : '';
+                                        $from = $transfert->fromEquipe->nom ?? 'Libre';
+                                        $to = $transfert->toEquipe->nom ?? 'Libre';
+                                    @endphp
                                     @if($transfert->type === 'transfert')
-                                        Transfert de <b>{{ $transfert->fromEquipe->nom ?? 'Libre' }}</b> à <b>{{ $transfert->toEquipe->nom ?? 'Libre' }}</b>
+                                        Le {{ $date }} : Transféré de <b>{{ $from }}</b> à <b>{{ $to }}</b>
                                     @elseif($transfert->type === 'affectation')
-                                        Affectation à <b>{{ $transfert->toEquipe->nom ?? 'Libre' }}</b>
+                                        Le {{ $date }} : Affecté à <b>{{ $to }}</b>
                                     @elseif($transfert->type === 'liberation')
-                                        Libéré de <b>{{ $transfert->fromEquipe->nom ?? 'Libre' }}</b>
+                                        Le {{ $date }} : Libéré de <b>{{ $from }}</b>
+                                    @else
+                                        Le {{ $date }} : Mouvement de club
                                     @endif
                                 </span>
                             </li>

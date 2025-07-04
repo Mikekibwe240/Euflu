@@ -30,6 +30,8 @@ class EquipeSeeder extends Seeder
             'TP ROCHER', 'FC CORBEAU', 'AC GECOS', 'FC St PIERRE', 'CS NX TALENT',
             'FC BRASIMBA', 'RED EAGLES J.S'
         ];
+        // Ajout FC St ESPRIT dans Pool B
+        $equipesB[] = 'FC St ESPRIT';
         $coachs = ['Mwamba', 'Ilunga', 'Kabasele', 'Mutombo', 'Kasongo', 'Kabongo', 'Lutumba', 'Makiese', 'Mbuyi', 'Ngoy', 'Mundele', 'Kalonji', 'Banza', 'Kitenge', 'Kanku', 'Moke', 'Bokolo', 'Kisimba', 'Kibonge', 'Kanda', 'Mawete', 'Kitenge', 'Kanku', 'Boketshu', 'Mabiala', 'Kitenge', 'Kanku', 'Boketshu', 'Mabiala'];
         shuffle($coachs);
         $logo = null; // ou 'default.png' si tu veux une image par défaut

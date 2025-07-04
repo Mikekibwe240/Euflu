@@ -10,6 +10,7 @@ use App\Models\Saison;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\SaisonHelper;
 
 class EquipeController extends Controller
 {
@@ -18,18 +19,9 @@ class EquipeController extends Controller
      */
     public function index(Request $request)
     {
-        // Déterminer la saison sélectionnée ou la saison ouverte par défaut
-        if ($request->filled('saison_id')) {
-            $saison = Saison::find($request->saison_id);
-        } else {
-            $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
-        }
-
-        // Charger les pools de la saison sélectionnée (ou vide si aucune)
+        $saison = SaisonHelper::getActiveSaison($request);
         $pools = $saison ? Pool::where('saison_id', $saison->id)->get() : collect();
         $saisons = Saison::orderByDesc('date_debut')->get();
-
-        // Construire la requête filtrée
         $query = Equipe::with('pool');
         if ($request->filled('nom')) {
             $query->where('nom', 'like', '%' . $request->nom . '%');
@@ -45,16 +37,15 @@ class EquipeController extends Controller
             $query->where('saison_id', $saison->id);
         }
         $equipes = $query->paginate(20)->withQueryString();
-
         return view('admin.equipes.index', compact('equipes', 'saison', 'pools', 'saisons'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request = null)
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = SaisonHelper::getActiveSaison($request);
         // S'assurer que les pools A et B existent pour la saison active
         if ($saison) {
             if (!Pool::where('saison_id', $saison->id)->where('nom', 'A')->exists()) {
@@ -73,7 +64,7 @@ class EquipeController extends Controller
      */
     public function store(Request $request)
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = SaisonHelper::getActiveSaison($request);
         $messages = [
             'nom.required' => 'Le nom de l’équipe est obligatoire.',
             'nom.unique' => 'Ce nom d’équipe existe déjà pour cette saison.',
@@ -125,8 +116,8 @@ class EquipeController extends Controller
      */
     public function edit(Equipe $equipe)
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
-        $pools = Pool::where('saison_id', $saison?->id)->get();
+        $saison = $equipe->saison; // On prend la saison de l'équipe
+        $pools = $saison ? \App\Models\Pool::where('saison_id', $saison->id)->get() : collect();
         return view('admin.equipes.edit', compact('equipe', 'pools', 'saison'));
     }
 
@@ -135,7 +126,7 @@ class EquipeController extends Controller
      */
     public function update(Request $request, Equipe $equipe)
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = $equipe->saison; // On prend la saison de l'équipe
         $messages = [
             'nom.required' => 'Le nom de l’équipe est obligatoire.',
             'nom.unique' => 'Ce nom d’équipe existe déjà pour cette saison.',

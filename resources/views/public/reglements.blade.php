@@ -25,64 +25,52 @@
 @endsection
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6 text-center">Règlements du Championnat</h1>
-    <form method="GET" class="mb-6 flex flex-wrap gap-4 justify-center">
-        <select name="saison_id" class="input input-bordered dark:bg-gray-800 dark:text-white">
-            <option value="">Toutes saisons</option>
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-8 text-center uppercase tracking-wider drop-shadow">Règlements du Championnat</h1>
+    <form method="GET" class="mb-8 flex flex-wrap gap-4 justify-center">
+        <select name="saison_id" class="px-4 py-2 rounded text-black bg-white border-2 border-[#6fcf97] focus:outline-none focus:ring-2 focus:ring-[#6fcf97] min-w-[180px]">
+            <option value="" style="color: #000; background: #fff;">Toutes saisons</option>
             @foreach($saisons as $saison)
-                <option value="{{ $saison->id }}" @selected(request('saison_id') == $saison->id)>
+                <option value="{{ $saison->id }}" style="color: #000; background: #fff;" @selected(request('saison_id', $saison?->id) == $saison->id)>
                     {{ $saison->nom ?? $saison->annee }}
                 </option>
             @endforeach
         </select>
-        <input type="text" name="titre" value="{{ request('titre') }}" placeholder="Titre..." class="input input-bordered dark:bg-gray-800 dark:text-white">
-        <input type="text" name="auteur" value="{{ request('auteur') }}" placeholder="Auteur..." class="input input-bordered dark:bg-gray-800 dark:text-white">
-        <input type="text" name="q" value="{{ request('q') }}" placeholder="Recherche..." class="input input-bordered dark:bg-gray-800 dark:text-white">
-        <button type="submit" class="inline-block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-bold px-6 py-2 rounded-full shadow hover:bg-primary-700 dark:hover:bg-gray-300 transition-all duration-300 font-inter">Filtrer</button>
+        <input type="text" name="titre" value="{{ request('titre') }}" placeholder="Titre..." class="px-4 py-2 rounded text-black bg-white border-2 border-[#6fcf97] focus:outline-none focus:ring-2 focus:ring-[#6fcf97] min-w-[180px]" />
+        <input type="text" name="auteur" value="{{ request('auteur') }}" placeholder="Auteur..." class="px-4 py-2 rounded text-black bg-white border-2 border-[#6fcf97] focus:outline-none focus:ring-2 focus:ring-[#6fcf97] min-w-[180px]" />
+        <input type="text" name="q" value="{{ request('q') }}" placeholder="Recherche..." class="px-4 py-2 rounded text-black bg-white border-2 border-[#6fcf97] focus:outline-none focus:ring-2 focus:ring-[#6fcf97] min-w-[180px]" />
+        <button type="submit" class="inline-block bg-[#6fcf97] text-[#23272a] font-bold px-6 py-2 rounded-full shadow hover:bg-[#23272a] hover:text-[#6fcf97] transition-all duration-300 font-inter">Filtrer</button>
     </form>
-    <div class="overflow-x-auto bg-white dark:bg-gray-900 rounded-lg shadow">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-100 dark:bg-gray-800">
+    <div class="overflow-x-auto bg-[#181d1f] rounded-lg shadow-lg border border-[#31363a]">
+        <table class="min-w-full divide-y divide-gray-700 text-white">
+            <thead class="bg-[#23272a]">
                 <tr>
-                    <th class="px-4 py-2 text-left">N°</th>
-                    <th class="px-4 py-2 text-left">Titre</th>
-                    <th class="px-4 py-2 text-left">Saison</th>
-                    <th class="px-4 py-2 text-left">Auteur</th>
-                    <th class="px-4 py-2 text-left">Date</th>
+                    <th class="px-4 py-3 text-left font-extrabold uppercase">N°</th>
+                    <th class="px-4 py-3 text-left font-extrabold uppercase">Titre</th>
+                    <th class="px-4 py-3 text-left font-extrabold uppercase">Saison</th>
+                    <th class="px-4 py-3 text-left font-extrabold uppercase">Auteur</th>
+                    <th class="px-4 py-3 text-left font-extrabold uppercase">Date</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($reglements as $reglement)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer" onclick="window.location.href='{{ route('public.reglements.show', $reglement->id) }}'">
-                        <td class="px-4 py-2 font-semibold">N° {{ $reglement->id }}</td>
-                        <td class="px-4 py-2">{{ $reglement->titre }}</td>
-                        <td class="px-4 py-2">{{ $reglement->saison->nom ?? $reglement->saison->annee ?? '-' }}</td>
-                        <td class="px-4 py-2">{{ $reglement->user->name ?? '-' }}</td>
-                        <td class="px-4 py-2">{{ $reglement->created_at->format('d/m/Y') }}</td>
-                    </tr>
-                    <tr id="reglement-{{ $reglement->id }}" class="hidden bg-gray-50 dark:bg-gray-800">
-                        <td colspan="5" class="px-4 py-4">
-                            <div class="prose dark:prose-invert max-w-none">
-                                {!! nl2br(e($reglement->contenu)) !!}
-                            </div>
-                        </td>
+                    <tr class="hover:bg-[#23272a] transition cursor-pointer border-b border-[#31363a]" onclick="window.location.href='{{ route('public.reglements.show', $reglement->id) }}'">
+                        <td class="px-4 py-3 font-semibold">N° {{ $reglement->id }}</td>
+                        <td class="px-4 py-3">{{ $reglement->titre }}</td>
+                        <td class="px-4 py-3">{{ $reglement->saison->nom ?? $reglement->saison->annee ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $reglement->user->name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $reglement->created_at->format('d/m/Y') }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Aucun règlement trouvé.</td>
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-400">Aucun règlement trouvé.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
-        <div class="mt-4">{{ $reglements->withQueryString()->links() }}</div>
+    </div>
+    <div class="mt-8 flex justify-center">
+        {{ $reglements->links() }}
     </div>
 </div>
-<script>
-function showReglement(id) {
-    document.querySelectorAll('tr[id^="reglement-"]').forEach(tr => tr.classList.add('hidden'));
-    const row = document.getElementById('reglement-' + id);
-    if(row) row.classList.toggle('hidden');
-}
-</script>
 @endsection

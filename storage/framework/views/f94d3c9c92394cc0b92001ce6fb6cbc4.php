@@ -31,23 +31,17 @@ unset($__defined_vars); ?>
 <?php
     // Récupère le chemin du logo si présent
     $logo = $team->logo ?? null;
-    // Génère les initiales (premières lettres de chaque mot du nom)
-    $initials = collect(explode(' ', $team->nom ?? $team->name ?? ''))
-        ->filter()
-        ->map(fn($w) => mb_substr($w, 0, 1))
-        ->join('');
 ?>
 
 <?php if($logo): ?>
     <img src="<?php echo e(asset('storage/'.$logo)); ?>" alt="Logo <?php echo e($team->nom ?? $team->name); ?>" style="width:<?php echo e($size); ?>px;height:<?php echo e($size); ?>px;object-fit:cover;border-radius:50%;background:#fff;border:1px solid #eee;" loading="lazy">
-<?php elseif($initials): ?>
-    <div style="width:<?php echo e($size); ?>px;height:<?php echo e($size); ?>px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#e5e7eb;color:#374151;font-weight:600;font-size:<?php echo e($size/2); ?>px;border:1px solid #eee;">
-        <?php echo e($initials); ?>
-
-    </div>
 <?php else: ?>
-    <div style="width:<?php echo e($size); ?>px;height:<?php echo e($size); ?>px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#f3f4f6;color:#9ca3af;font-size:<?php echo e($size/2); ?>px;border:1px solid #eee;">
-        ?
-    </div>
+    <span style="width:<?php echo e($size); ?>px;height:<?php echo e($size); ?>px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#23272a;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="#e2001a" viewBox="0 0 24 24" style="height:<?php echo e($size*0.7); ?>px;width:<?php echo e($size*0.7); ?>px;">
+            <circle cx="12" cy="12" r="10" fill="#23272a"/>
+            <path d="M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z" fill="#e2001a"/>
+            <circle cx="12" cy="12" r="3" fill="#fff"/>
+        </svg>
+    </span>
 <?php endif; ?>
 <?php /**PATH C:\Users\MIKE KIBWE\Documents\Learning\UDBL\L4 GL\TFC\Application\Euflu\resources\views/components/team-logo.blade.php ENDPATH**/ ?>

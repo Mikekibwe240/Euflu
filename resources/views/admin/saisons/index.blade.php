@@ -11,6 +11,17 @@
 <div class="mb-6">
     <a href="{{ route('admin.saisons.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Nouvelle saison</a>
 </div>
+
+@if(session('success'))
+    <x-alert type="success" :message="session('success')" />
+@endif
+@if(session('error'))
+    <x-alert type="error" :message="session('error')" />
+@endif
+@if($errors->any())
+    <x-alert type="error" :message="$errors->first()" />
+@endif
+
 <table class="min-w-full bg-white dark:bg-gray-800 rounded shadow table-fixed">
     <thead>
         <tr>
@@ -18,13 +29,12 @@
             <th class="px-4 py-2 w-32 text-center">Début</th>
             <th class="px-4 py-2 w-32 text-center">Fin</th>
             <th class="px-4 py-2 w-20 text-center">Active</th>
-            <th class="px-4 py-2 w-32 text-center">Actions</th>
         </tr>
     </thead>
     <tbody>
         @foreach($saisons as $saison)
-        <tr class="border-b border-gray-200 dark:border-gray-700 text-center align-middle">
-            <td class="px-4 py-2 font-semibold">{{ $saison->nom }}</td>
+        <tr class="border-b border-gray-200 dark:border-gray-700 text-center align-middle hover:bg-blue-50 dark:hover:bg-blue-900 transition cursor-pointer" onclick="window.location='{{ route('admin.saisons.show', $saison) }}'">
+            <td class="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 underline">{{ $saison->nom }}</td>
             <td class="px-4 py-2">{{ $saison->date_debut }}</td>
             <td class="px-4 py-2">{{ $saison->date_fin }}</td>
             <td class="px-4 py-2">
@@ -32,21 +42,6 @@
                     <span class="text-green-600 font-bold">Oui</span>
                 @else
                     <span class="text-gray-500">Non</span>
-                @endif
-            </td>
-            <td class="px-4 py-2">
-                @if(!$saison->active)
-                <form action="{{ route('admin.saisons.activate', $saison) }}" method="POST" class="inline">
-                    @csrf
-                    @method('PATCH')
-                    <button type="submit" class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">Activer</button>
-                </form>
-                @else
-                <form action="{{ route('admin.saisons.deactivate', $saison) }}" method="POST" class="inline">
-                    @csrf
-                    @method('PATCH')
-                    <button type="submit" class="bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700">Désactiver</button>
-                </form>
                 @endif
             </td>
         </tr>

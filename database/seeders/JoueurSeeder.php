@@ -25,9 +25,9 @@ class JoueurSeeder extends Seeder
             'MD', 'MG', 'MO', 'MDC', 'MDC', // 5 milieux (remplaçants)
             'AD', 'AG', 'BU', 'BU', // 4 attaquants
         ];
-        $prenoms = ['Arsène', 'Blaise', 'Chadrack', 'Désiré', 'Emery', 'Fiston', 'Gloire', 'Héritier', 'Isaac', 'Joël', 'Kévin', 'Landry', 'Merveille', 'Noé', 'Oscar', 'Prince', 'Quentin', 'Ricky', 'Samuel', 'Trésor', 'Ulrich', 'Vainqueur', 'Wilfried'];
-        $noms = ['Mwamba', 'Kasongo', 'Ilunga', 'Kabongo', 'Mutombo', 'Lukusa', 'Makiese', 'Kabasele', 'Kalala', 'Mbuyi', 'Ngoy', 'Kalonji', 'Kanku', 'Kitenge', 'Kashala', 'Mundele', 'Kambale', 'Kalonji', 'Kanku', 'Kitenge', 'Kashala', 'Mundele'];
-        $postnoms = ['Kabasele', 'Mutombo', 'Kabongo', 'Kasongo', 'Lutumba', 'Makiese', 'Mbuyi', 'Ngoy', 'Mundele', 'Kalonji', 'Banza', 'Kitenge', 'Kanku', 'Bokolo', 'Kisimba', 'Kibonge', 'Kanda', 'Mawete', 'Boketshu', 'Mabiala'];
+        $prenoms = ['Arsène', 'Blaise', 'Chadrack', 'Désiré', 'Emery', 'Fiston', 'Gloire', 'Héritier', 'Isaac', 'Joël', 'Kévin', 'Landry', 'Merveille', 'Noé', 'Oscar', 'Prince', 'Quentin', 'Ricky', 'Samuel', 'Trésor', 'Ulrich', 'Vainqueur', 'Wilfried', 'Patrice', 'Bénédicte', 'Cédric', 'Gracia', 'Junior', 'Boris', 'Borel'];
+        $noms = ['Mwamba', 'Kasongo', 'Ilunga', 'Kabongo', 'Mutombo', 'Lukusa', 'Makiese', 'Kabasele', 'Kalala', 'Mbuyi', 'Ngoy', 'Kalonji', 'Kanku', 'Kitenge', 'Kashala', 'Mundele', 'Kambale', 'Kalonji', 'Kanku', 'Kitenge', 'Kashala', 'Mundele', 'Bisimwa', 'Mabika', 'Mabiala', 'Boketshu', 'Kisimba', 'Kibonge', 'Kanda', 'Mawete'];
+        $postnoms = ['Kabasele', 'Mutombo', 'Kabongo', 'Kasongo', 'Lutumba', 'Makiese', 'Mbuyi', 'Ngoy', 'Mundele', 'Kalonji', 'Banza', 'Kitenge', 'Kanku', 'Bokolo', 'Kisimba', 'Kibonge', 'Kanda', 'Mawete', 'Boketshu', 'Mabiala', 'Bisimwa', 'Mabika', 'Boketshu', 'Kanku', 'Kitenge', 'Kashala', 'Mundele', 'Kambale', 'Kalonji', 'Kanku'];
         foreach ($equipes as $equipe) {
             $prenomsEquipe = Arr::shuffle($prenoms);
             $nomsEquipe = Arr::shuffle($noms);
@@ -47,6 +47,31 @@ class JoueurSeeder extends Seeder
                     'date_naissance' => $date_naissance,
                     'poste' => $poste,
                     'equipe_id' => $equipe->id,
+                    'saison_id' => $saison->id,
+                    'photo' => null,
+                ]);
+            }
+        }
+        // Ajout spécifique pour FC St ESPRIT
+        $fcStEsprit = $equipes->firstWhere('nom', 'FC St ESPRIT');
+        if ($fcStEsprit) {
+            $prenomsEquipe = \Illuminate\Support\Arr::shuffle($prenoms);
+            $nomsEquipe = \Illuminate\Support\Arr::shuffle($noms);
+            $postnomsEquipe = \Illuminate\Support\Arr::shuffle($postnoms);
+            for ($i = 0; $i < 22; $i++) {
+                $poste = $postes[$i] ?? 'BU';
+                $prenom = $prenomsEquipe[$i % count($prenomsEquipe)];
+                $nom = $nomsEquipe[$i % count($nomsEquipe)] . ' ' . $postnomsEquipe[$i % count($postnomsEquipe)];
+                $annee = rand(1999, 2007);
+                $mois = rand(1, 12);
+                $jour = rand(1, 28);
+                $date_naissance = sprintf('%04d-%02d-%02d', $annee, $mois, $jour);
+                \App\Models\Joueur::create([
+                    'nom' => $nom,
+                    'prenom' => $prenom,
+                    'date_naissance' => $date_naissance,
+                    'poste' => $poste,
+                    'equipe_id' => $fcStEsprit->id,
                     'saison_id' => $saison->id,
                     'photo' => null,
                 ]);

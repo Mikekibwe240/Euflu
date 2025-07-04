@@ -45,6 +45,21 @@
             <input type="file" name="photo" class="w-full mt-1 p-2 border rounded dark:bg-gray-700 dark:text-white">
             @error('photo')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
         </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-200">Numéro de licence</label>
+            <input type="text" name="numero_licence" class="w-full mt-1 p-2 border rounded dark:bg-gray-700 dark:text-white" value="{{ old('numero_licence') }}">
+            @error('numero_licence')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-200">Numéro (dossard)</label>
+            <input type="text" name="numero_dossard" class="w-full mt-1 p-2 border rounded dark:bg-gray-700 dark:text-white" value="{{ old('numero_dossard') }}">
+            @error('numero_dossard')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-200">Nationalité</label>
+            <input type="text" name="nationalite" class="w-full mt-1 p-2 border rounded dark:bg-gray-700 dark:text-white" value="{{ old('nationalite') }}">
+            @error('nationalite')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        </div>
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Ajouter</button>
         <a href="{{ route('admin.joueurs.index') }}" class="ml-2 text-gray-600 dark:text-gray-300 hover:underline">Annuler</a>
     </form>

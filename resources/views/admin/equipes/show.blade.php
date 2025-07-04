@@ -8,10 +8,16 @@
         <div class="flex-shrink-0
             @if($equipe->logo)
                 <span class="inline-flex items-center justify-center h-32 w-32 rounded-full bg-white border border-blue-200 dark:border-blue-700 overflow-hidden mb-4">
-                    <img src="{{ asset('storage/' . $equipe->logo) }}" alt="Logo {{ $equipe->nom }}" class="h-32 w-32 object-cover" onerror="this.style.display='none'; this.parentNode.innerHTML='<span class=\'flex h-32 w-32 rounded-full bg-blue-100 text-blue-700 font-bold items-center justify-center\'>{{ strtoupper(substr($equipe->nom,0,2)) }}</span>'">
+                    <img src="{{ asset('storage/' . $equipe->logo) }}" alt="Logo {{ $equipe->nom }}" class="h-32 w-32 object-cover" onerror="this.style.display='none'; this.parentNode.innerHTML='<span class=\'flex h-32 w-32 rounded-full bg-[#23272a] items-center justify-center\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#e2001a\' viewBox=\'0 0 24 24\' style=\'height:60px;width:60px;\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'#23272a\'/><path d=\'M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z\' fill=\'#e2001a\'/><circle cx=\'12\' cy=\'12\' r=\'3\' fill=\'#fff\'/></svg></span>'">
                 </span>
             @else
-                <div class="h-32 w-32 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-4xl mb-4">{{ strtoupper(substr($equipe->nom,0,2)) }}</div>
+                <div class="h-32 w-32 flex items-center justify-center rounded-full bg-[#23272a] mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="#e2001a" viewBox="0 0 24 24" style="height:60px;width:60px;">
+                        <circle cx="12" cy="12" r="10" fill="#23272a"/>
+                        <path d="M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z" fill="#e2001a"/>
+                        <circle cx="12" cy="12" r="3" fill="#fff"/>
+                    </svg>
+                </div>
             @endif
             <div class="text-lg font-semibold text-blue-800 dark:text-blue-200">{{ $equipe->nom }}</div>
             <div class="text-gray-500 dark:text-gray-300">Poule : {{ $equipe->pool->nom ?? '-' }}</div>
@@ -45,22 +51,45 @@
             @if($equipe->joueurs->isEmpty())
                 <p class="text-gray-500">Aucun joueur enregistré pour cette équipe.</p>
             @else
-                <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-                    @foreach($equipe->joueurs as $joueur)
-                        <li class="py-3 flex items-center gap-4 hover:bg-blue-50 dark:hover:bg-blue-900 transition cursor-pointer rounded"
-                            onclick="window.location='{{ route('admin.joueurs.show', $joueur->id) }}'">
-                            @if($joueur->photo)
-                                <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo {{ $joueur->nom }}" class="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700 bg-white" onerror="this.style.display='none'">
-                            @else
-                                <span class="flex h-10 w-10 rounded-full bg-blue-100 text-blue-700 font-bold items-center justify-center">{{ strtoupper(substr($joueur->nom,0,1)) }}</span>
-                            @endif
-                            <span class="font-medium text-lg text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded transition-colors duration-200">
-                                {{ $joueur->nom }} {{ $joueur->prenom }}
-                            </span>
-                            <span class="text-gray-500 ml-auto">{{ $joueur->poste }}</span>
-                        </li>
-                    @endforeach
-                </ul>
+                <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow mt-4 table-fixed">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 w-20 text-center">Photo</th>
+                            <th class="py-2 px-4 w-32 text-center">Nom</th>
+                            <th class="py-2 px-4 w-32 text-center">Prénom</th>
+                            <th class="py-2 px-4 w-32 text-center">Date naissance</th>
+                            <th class="py-2 px-4 w-24 text-center">Poste</th>
+                            <th class="py-2 px-4 w-28 text-center">Licence</th>
+                            <th class="py-2 px-4 w-20 text-center">Dossard</th>
+                            <th class="py-2 px-4 w-28 text-center">Nationalité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($equipe->joueurs as $joueur)
+                        <tr class="border-b border-gray-200 dark:border-gray-700 text-center align-middle hover:bg-blue-50 dark:hover:bg-blue-900 transition cursor-pointer" onclick="window.location='{{ route('admin.joueurs.show', $joueur->id) }}'">
+                            <td class="py-2 px-4">
+                                @if($joueur->photo)
+                                    <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo" class="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700 bg-white mx-auto" onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\'h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center mx-auto\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#b0b0b0\' viewBox=\'0 0 24 24\' class=\'h-8 w-8\'><circle cx=\'12\' cy=\'8\' r=\'4\'/><path d=\'M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z\'/></svg></div>'">
+                                @else
+                                    <div class="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center mx-auto">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-8 w-8">
+                                            <circle cx="12" cy="8" r="4"/>
+                                            <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
+                                        </svg>
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="py-2 px-4 font-semibold text-blue-700 dark:text-blue-300">{{ $joueur->nom }}</td>
+                            <td class="py-2 px-4">{{ $joueur->prenom }}</td>
+                            <td class="py-2 px-4">{{ $joueur->date_naissance }}</td>
+                            <td class="py-2 px-4">{{ $joueur->poste }}</td>
+                            <td class="py-2 px-4 font-mono">{{ $joueur->numero_licence ?? '-' }}</td>
+                            <td class="py-2 px-4 font-mono">{{ $joueur->numero_dossard ?? '-' }}</td>
+                            <td class="py-2 px-4">{{ $joueur->nationalite ?? '-' }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             @endif
         </div>
     </div>
@@ -86,14 +115,34 @@
         <x-alert type="error" :message="$errors->first()" />
     @endif
     <h2 class="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-4">Ajouter un joueur existant (libre)</h2>
-    <form method="POST" action="{{ route('admin.equipes.ajouterJoueur', $equipe->id) }}" class="mb-6 flex gap-4 items-end">
+    <form method="POST" action="{{ route('admin.equipes.ajouterJoueur', $equipe->id) }}" class="mb-6 flex flex-col gap-4 items-start">
         @csrf
-        <select name="joueur_id" class="form-select w-64 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
-            <option value="">Sélectionner un joueur libre</option>
-            @foreach(\App\Models\Joueur::whereNull('equipe_id')->orderBy('nom')->get() as $joueur)
-                <option value="{{ $joueur->id }}">{{ $joueur->nom }} {{ $joueur->prenom }}</option>
-            @endforeach
-        </select>
+        <div class="w-full max-w-md">
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow p-2 divide-y divide-gray-200 dark:divide-gray-700">
+                @php
+                    $joueursLibres = \App\Models\Joueur::whereNull('equipe_id')->orderBy('nom')->get();
+                @endphp
+                @forelse($joueursLibres as $joueur)
+                    <label class="flex items-center gap-3 py-2 px-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 rounded transition">
+                        <input type="radio" name="joueur_id" value="{{ $joueur->id }}" class="form-radio text-blue-600" required>
+                        @if($joueur->photo)
+                            <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo {{ $joueur->nom }}" class="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700 bg-white" onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\'h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center mx-auto\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#b0b0b0\' viewBox=\'0 0 24 24\' class=\'h-8 w-8\'><circle cx=\'12\' cy=\'8\' r=\'4\'/><path d=\'M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z\'/></svg></div>'">
+                        @else
+                            <div class="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center mx-auto">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-8 w-8">
+                                    <circle cx="12" cy="8" r="4"/>
+                                    <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
+                                </svg>
+                            </div>
+                        @endif
+                        <span class="font-medium text-gray-800 dark:text-gray-100">{{ $joueur->nom }} {{ $joueur->prenom }}</span>
+                        <span class="text-gray-500 text-sm">{{ $joueur->poste }}</span>
+                    </label>
+                @empty
+                    <div class="text-gray-500 italic py-2 px-2">Aucun joueur libre disponible</div>
+                @endforelse
+            </div>
+        </div>
         <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Ajouter</button>
     </form>
 </div>

@@ -16,6 +16,7 @@ class ClassementButeursAdminController extends Controller
         // Récupérer tous les joueurs des équipes du pool
         $joueurs = Joueur::whereIn('equipe_id', $pool->equipes->pluck('id'))
             ->withCount(['buts'])
+            ->having('buts_count', '>', 0)
             ->orderByDesc('buts_count')
             ->get();
         return view('admin.classement_buteurs', [

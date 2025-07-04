@@ -10,15 +10,22 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\ArticlesExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\SaisonHelper;
 
 class ArticleController extends Controller
 {
     public function index(Request $request)
     {
         $saisons = Saison::orderByDesc('date_debut')->get();
-        $query = Article::with(['saison', 'user']);
+        $saison = null;
         if ($request->filled('saison_id')) {
-            $query->where('saison_id', $request->saison_id);
+            $saison = Saison::find($request->saison_id);
+        } else {
+            $saison = Saison::where('active', 1)->first();
+        }
+        $query = Article::with(['saison', 'user']);
+        if ($saison) {
+            $query->where('saison_id', $saison->id);
         }
         if ($request->filled('titre')) {
             $query->where('titre', $request->titre);
@@ -39,7 +46,7 @@ class ArticleController extends Controller
             });
         }
         $articles = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
-        return view('admin.articles.index', compact('articles', 'saisons'));
+        return view('admin.articles.index', compact('articles', 'saisons', 'saison'));
     }
 
     public function create()
@@ -53,20 +60,20 @@ class ArticleController extends Controller
         $messages = [
             'titre.required' => 'Le titre est obligatoire.',
             'contenu.required' => 'Le contenu est obligatoire.',
-            'saison_id.required' => 'La saison est obligatoire.',
-            'saison_id.exists' => 'La saison sélectionnée n’existe pas.',
         ];
         $request->validate([
             'titre' => 'required|string|max:255',
             'contenu' => 'required|string',
-            'saison_id' => 'required|exists:saisons,id',
             'image' => 'nullable|image|max:2048',
             'images.*' => 'nullable|image|max:2048',
             'images' => 'nullable|array|max:3',
             'video' => 'nullable|file|mimetypes:video/mp4|max:20480',
             'published_at' => 'nullable|date',
         ], $messages);
-        $data = $request->only(['titre', 'contenu', 'saison_id']);
+        $data = $request->only(['titre', 'contenu']);
+        // Saison active
+        $saisonActive = Saison::where('active', 1)->first();
+        $data['saison_id'] = $saisonActive ? $saisonActive->id : null;
         // Vidéo locale (mp4)
         if ($request->hasFile('video')) {
             $data['video'] = $request->file('video')->store('articles/videos', 'public');
@@ -76,7 +83,7 @@ class ArticleController extends Controller
         $data['published_at'] = $request->filled('published_at') ? $request->published_at : null;
         // Remplir date_publication automatiquement
         $data['date_publication'] = $request->filled('published_at') ? substr($request->published_at, 0, 10) : now()->toDateString();
-        $data['user_id'] = auth()->id();
+        $data['user_id'] = \Auth::id();
         $article = Article::create($data);
         // Suppression de la gestion des catégories
         // Gestion des images (Image 1, 2, 3)
@@ -103,20 +110,20 @@ class ArticleController extends Controller
         $messages = [
             'titre.required' => 'Le titre est obligatoire.',
             'contenu.required' => 'Le contenu est obligatoire.',
-            'saison_id.required' => 'La saison est obligatoire.',
-            'saison_id.exists' => 'La saison sélectionnée n’existe pas.',
         ];
         $request->validate([
             'titre' => 'required|string|max:255',
             'contenu' => 'required|string',
-            'saison_id' => 'required|exists:saisons,id',
             'image' => 'nullable|image|max:2048',
             'images.*' => 'nullable|image|max:2048',
             'images' => 'nullable|array|max:3',
             'video' => 'nullable|file|mimetypes:video/mp4|max:20480',
             'published_at' => 'nullable|date',
         ], $messages);
-        $data = $request->only(['titre', 'contenu', 'saison_id']);
+        $data = $request->only(['titre', 'contenu']);
+        // Saison active
+        $saisonActive = Saison::where('active', 1)->first();
+        $data['saison_id'] = $saisonActive ? $saisonActive->id : null;
         // Vidéo locale (mp4)
         if ($request->hasFile('video')) {
             $data['video'] = $request->file('video')->store('articles/videos', 'public');
@@ -124,7 +131,7 @@ class ArticleController extends Controller
         $data['published_at'] = $request->filled('published_at') ? $request->published_at : null;
         // Remplir date_publication automatiquement
         $data['date_publication'] = $request->filled('published_at') ? substr($request->published_at, 0, 10) : now()->toDateString();
-        $data['updated_by'] = auth()->id();
+        $data['updated_by'] = \Auth::id();
         $article->update($data);
         // Suppression des anciennes images si de nouvelles images sont uploadées
         if ($request->hasFile('images')) {
@@ -147,7 +154,7 @@ class ArticleController extends Controller
     {
         $titre = $article->titre;
         $article->delete();
-        Log::info('Suppression d\'un article', ['titre' => $titre, 'admin_id' => Auth::id()]);
+        Log::info('Suppression d\'un article', ['titre' => $titre, 'admin_id' => \Auth::id()]);
         return redirect()->route('admin.articles.index')->with('success', "L’article '$titre' a bien été supprimé.");
     }
 
@@ -183,5 +190,26 @@ class ArticleController extends Controller
     {
         $article->load(['saison', 'user']);
         return view('admin.articles.show', compact('article'));
+    }
+
+    // Supprimer un média (image ou vidéo) d'un article
+    public function removeMedia(Request $request, Article $article)
+    {
+        $type = $request->input('type');
+        if ($type === 'video' && $article->video) {
+            \Storage::disk('public')->delete($article->video);
+            $article->video = null;
+            $article->save();
+            return back()->with('success', 'Vidéo supprimée.');
+        }
+        if ($type === 'image' && $request->filled('image_id')) {
+            $img = $article->images()->find($request->input('image_id'));
+            if ($img) {
+                \Storage::disk('public')->delete($img->path);
+                $img->delete();
+                return back()->with('success', 'Image supprimée.');
+            }
+        }
+        return back()->with('error', 'Aucun média supprimé.');
     }
 }

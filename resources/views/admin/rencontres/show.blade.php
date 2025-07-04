@@ -195,38 +195,66 @@
             </ul>
         </div>
     </div>
-    <div class="mb-6">
-        <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-200">Effectifs</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <strong>{{ $rencontre->equipe1?->nom ?? $rencontre->equipe1_libre ?? '-' }}</strong>
-                <ul>
-                    @if($rencontre->equipe1)
-                        @foreach($rencontre->equipe1->joueurs as $joueur)
-                            <li>{{ $joueur->nom }} {{ $joueur->prenom }}</li>
-                        @endforeach
-                    @elseif($rencontre->equipe1_libre)
-                        <li class="text-gray-400">Cette équipe n'est pas enregistrée dans le championnat.</li>
-                    @else
-                        <li class="text-gray-400">Aucune équipe</li>
-                    @endif
-                </ul>
-            </div>
-            <div>
-                <strong>{{ $rencontre->equipe2?->nom ?? $rencontre->equipe2_libre ?? '-' }}</strong>
-                <ul>
-                    @if($rencontre->equipe2)
-                        @foreach($rencontre->equipe2->joueurs as $joueur)
-                            <li>{{ $joueur->nom }} {{ $joueur->prenom }}</li>
-                        @endforeach
-                    @elseif($rencontre->equipe2_libre)
-                        <li class="text-gray-400">Cette équipe n'est pas enregistrée dans le championnat.</li>
-                    @else
-                        <li class="text-gray-400">Aucune équipe</li>
-                    @endif
-                </ul>
-            </div>
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6 mt-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            @foreach([$rencontre->equipe1, $rencontre->equipe2] as $equipe)
+                @if($equipe)
+                    @php
+                        $effectif = \App\Models\MatchEffectif::where('rencontre_id', $rencontre->id)->where('equipe_id', $equipe->id)->first();
+                    @endphp
+                    <div>
+                        <div class="font-bold text-[#6fcf97] uppercase text-base mb-2">Effectif {{ $equipe->nom }}</div>
+                        @if($effectif)
+                            <div class="mb-2">
+                                <span class="font-semibold text-gray-900 dark:text-gray-100">Titulaires :</span>
+                                <ul class="text-gray-900 dark:text-gray-100 text-sm space-y-1 mt-1">
+                                    @foreach($effectif->joueurs->where('type', 'titulaire')->sortBy('ordre') as $titulaire)
+                                        <li>{{ $titulaire->joueur->nom ?? '-' }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <div class="mb-2">
+                                <span class="font-semibold text-gray-900 dark:text-gray-100">Remplaçants :</span>
+                                <ul class="text-gray-900 dark:text-gray-100 text-sm space-y-1 mt-1">
+                                    @foreach($effectif->joueurs->where('type', 'remplaçant')->sortBy('ordre') as $remplacant)
+                                        <li>{{ $remplacant->joueur->nom ?? '-' }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-900 dark:text-gray-100">Remplacements :</span>
+                                <ul class="text-gray-900 dark:text-gray-100 text-sm space-y-1 mt-1">
+                                    @forelse($effectif->remplacements as $remp)
+                                        <li>
+                                            <span class="font-bold">{{ $remp->remplaçant->nom ?? '-' }}</span>
+                                            @if(!is_null($remp->minute))
+                                                <span class="text-xs text-gray-400">{{ $remp->minute }}'</span>
+                                            @endif
+                                            <span class="text-xs">a remplacé</span>
+                                            <span class="font-bold">{{ $remp->remplacé->nom ?? '-' }}</span>
+                                        </li>
+                                    @empty
+                                        <li class="text-gray-500">Aucun remplacement</li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        @else
+                            <div class="text-gray-400 italic">Aucun effectif saisi</div>
+                        @endif
+                    </div>
+                @endif
+            @endforeach
         </div>
+    </div>
+    <div class="mt-4 text-xs text-gray-500 text-right">
+        @if($rencontre->updatedBy)
+            <span>Dernière modification par : <span class="font-bold">{{ $rencontre->updatedBy->name }}</span></span>
+        @endif
+    </div>
+    <div class="flex justify-between mt-8">
+        <a href="{{ route('admin.rencontres.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded shadow">
+            &#8592; Retour à la liste des rencontres
+        </a>
     </div>
 </div>
 @endsection

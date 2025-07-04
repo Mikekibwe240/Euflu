@@ -11,9 +11,15 @@ class ArticleController extends Controller
     public function index(Request $request)
     {
         $saisons = Saison::orderByDesc('date_debut')->get();
-        $query = Article::with(['saison', 'user', 'images']);
+        $saison = null;
         if ($request->filled('saison_id')) {
-            $query->where('saison_id', $request->saison_id);
+            $saison = Saison::find($request->saison_id);
+        } else {
+            $saison = Saison::where('active', 1)->first();
+        }
+        $query = Article::with(['saison', 'user', 'images']);
+        if ($saison) {
+            $query->where('saison_id', $saison->id);
         }
         if ($request->filled('type')) {
             $query->where('type', $request->type);
@@ -29,7 +35,7 @@ class ArticleController extends Controller
             });
         }
         $articles = $query->orderByDesc('created_at')->paginate(12)->withQueryString();
-        return view('public.articles', compact('articles', 'saisons'));
+        return view('public.articles', compact('articles', 'saisons', 'saison'));
     }
 
     public function show($id)

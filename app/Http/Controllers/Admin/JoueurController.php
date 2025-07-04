@@ -13,6 +13,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\SaisonHelper;
+use Illuminate\Validation\Rule;
 
 class JoueurController extends Controller
 {
@@ -21,21 +23,20 @@ class JoueurController extends Controller
      */
     public function index(Request $request)
     {
-        // Déterminer la saison sélectionnée ou la saison ouverte par défaut
-        if ($request->filled('saison_id')) {
-            $saison = Saison::find($request->saison_id);
+        $saison = null;
+        if ($request->filled('saison_id') && $request->saison_id !== 'all') {
+            $saison = Saison::find($request->saison_id) ?? SaisonHelper::getActiveSaison($request);
         } else {
-            $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+            $saison = SaisonHelper::getActiveSaison($request);
         }
-
-        // Charger les équipes de la saison sélectionnée (ou vide si aucune)
         $equipes = $saison ? Equipe::where('saison_id', $saison->id)->get() : collect();
         $saisons = Saison::orderByDesc('date_debut')->get();
-
-        // Construire la requête filtrée
         $query = Joueur::with('equipe');
         if ($request->filled('nom')) {
-            $query->where('nom', 'like', '%' . $request->nom . '%');
+            $query->where(function($q) use ($request) {
+                $q->where('nom', 'like', '%' . $request->nom . '%')
+                  ->orWhere('prenom', 'like', '%' . $request->nom . '%');
+            });
         }
         if ($request->filled('equipe_id')) {
             if ($request->equipe_id === 'libre') {
@@ -44,11 +45,11 @@ class JoueurController extends Controller
                 $query->where('equipe_id', $request->equipe_id);
             }
         }
-        if ($saison) {
-            $query->where('saison_id', $saison->id);
+        // Only filter by saison if not 'all'
+        if ($request->filled('saison_id') && $request->saison_id !== 'all') {
+            $query->where('saison_id', $saison?->id);
         }
         $joueurs = $query->paginate(20)->withQueryString();
-
         return view('admin.joueurs.index', compact('joueurs', 'saison', 'equipes', 'saisons'));
     }
 
@@ -57,7 +58,7 @@ class JoueurController extends Controller
      */
     public function create(Request $request)
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = SaisonHelper::getActiveSaison($request);
         $equipes = $saison ? Equipe::where('saison_id', $saison->id)->get() : collect();
         $equipe_id = $request->input('equipe_id');
         return view('admin.joueurs.create', compact('equipes', 'saison', 'equipe_id'));
@@ -68,7 +69,7 @@ class JoueurController extends Controller
      */
     public function store(Request $request)
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = SaisonHelper::getActiveSaison($request);
         $messages = [
             'nom.required' => 'Le nom du joueur est obligatoire.',
             'prenom.required' => 'Le prénom du joueur est obligatoire.',
@@ -84,11 +85,21 @@ class JoueurController extends Controller
             'prenom' => 'required|string|max:255',
             'date_naissance' => 'required|date',
             'poste' => 'required|string|max:100',
-            'equipe_id' => 'nullable|exists:equipes,id', // équipe optionnelle
+            'equipe_id' => 'nullable|exists:equipes,id',
             'photo' => 'nullable|image|max:2048',
+            'numero_licence' => 'nullable|string|max:100',
+            'numero_dossard' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:99',
+                Rule::unique('joueurs')->where(function ($query) use ($request) {
+                    return $query->where('equipe_id', $request->equipe_id);
+                }),
+            ],
+            'nationalite' => 'nullable|string|max:100',
         ], $messages);
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
-        $data = $request->only(['nom', 'prenom', 'date_naissance', 'poste', 'equipe_id']);
+        $data = $request->only(['nom', 'prenom', 'date_naissance', 'poste', 'equipe_id', 'numero_licence', 'numero_dossard', 'nationalite']);
         $data['saison_id'] = $saison?->id;
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('joueurs', 'public');
@@ -104,7 +115,7 @@ class JoueurController extends Controller
     public function show($id)
     {
         $joueur = \App\Models\Joueur::with(['equipe', 'buts', 'transferts.fromEquipe', 'transferts.toEquipe'])->findOrFail($id);
-        $saison = \App\Models\Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = SaisonHelper::getActiveSaison(request());
         $equipes = $saison ? \App\Models\Equipe::where('saison_id', $saison->id)->get() : collect();
         return view('admin.joueurs.show', compact('joueur', 'equipes'));
     }
@@ -115,7 +126,7 @@ class JoueurController extends Controller
     public function edit(string $id)
     {
         $joueur = Joueur::findOrFail($id);
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = SaisonHelper::getActiveSaison(request());
         $equipes = $saison ? Equipe::where('saison_id', $saison->id)->get() : collect();
         return view('admin.joueurs.edit', compact('joueur', 'equipes', 'saison'));
     }
@@ -141,10 +152,24 @@ class JoueurController extends Controller
             'prenom' => 'required|string|max:255',
             'date_naissance' => 'required|date',
             'poste' => 'required|string|max:100',
-            'equipe_id' => 'nullable|exists:equipes,id', // équipe optionnelle
+            'equipe_id' => 'nullable|exists:equipes,id',
             'photo' => 'nullable|image|max:2048',
+            'numero_licence' => 'nullable|string|max:100',
+            'numero_dossard' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:99',
+                Rule::unique('joueurs')->where(function ($query) use ($request) {
+                    return $query->where('equipe_id', $request->equipe_id);
+                })->ignore($joueur->id),
+            ],
+            'nationalite' => 'nullable|string|max:100',
         ], $messages);
-        $data = $request->only(['nom', 'prenom', 'date_naissance', 'poste', 'equipe_id']);
+        $data = $request->only(['nom', 'prenom', 'date_naissance', 'poste', 'equipe_id', 'numero_licence', 'numero_dossard', 'nationalite']);
+        // Harmonize: always set saison_id to the active season
+        $saison = SaisonHelper::getActiveSaison($request);
+        $data['saison_id'] = $saison?->id;
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('joueurs', 'public');
         }
@@ -163,12 +188,12 @@ class JoueurController extends Controller
         if ($request->input('action') === 'libre') {
             $joueur->equipe_id = null;
             $joueur->save();
-            Log::info('Joueur rendu libre', ['joueur' => $nom, 'admin_id' => Auth::id()]);
-            return redirect()->route('admin.joueurs.index')->with('success', "Le joueur $nom est maintenant libre (sans équipe).");
+            \Log::info('Joueur rendu libre par l\'admin', ['joueur' => $nom, 'admin_id' => \Auth::id()]);
+            return redirect()->route('admin.joueurs.index')->with('success', 'Le joueur ' . $nom . ' est maintenant libre (sans équipe).');
         } else {
             $joueur->delete();
-            Log::info('Suppression du joueur', ['joueur' => $nom, 'admin_id' => Auth::id()]);
-            return redirect()->route('admin.joueurs.index')->with('success', "Le joueur $nom a bien été supprimé de la base de données.");
+            \Log::info('Suppression du joueur par l\'admin', ['joueur' => $nom, 'admin_id' => \Auth::id()]);
+            return redirect()->route('admin.joueurs.index')->with('success', 'Le joueur ' . $nom . ' a bien été supprimé de la base de données.');
         }
     }
 
@@ -227,6 +252,14 @@ class JoueurController extends Controller
         }
         $request->validate([
             'equipe_id' => 'required|exists:equipes,id',
+        ]);
+        // Historique : enregistrer l'affectation
+        \App\Models\Transfert::create([
+            'joueur_id' => $joueur->id,
+            'from_equipe_id' => null, // il était libre
+            'to_equipe_id' => $request->equipe_id,
+            'date' => now(),
+            'type' => 'affectation',
         ]);
         $joueur->equipe_id = $request->equipe_id;
         $joueur->save();
