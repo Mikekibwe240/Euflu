@@ -23,16 +23,14 @@
                 <div id="carousel-{{ $article->id }}" data-carousel class="relative w-full h-80 md:h-[28rem] rounded-xl overflow-hidden shadow-lg mb-8 bg-black">
                     @if($article->video)
                         <div data-carousel-item class="w-full h-80 md:h-[28rem] relative">
-                            <video src="{{ asset('storage/' . $article->video) }}" class="w-full h-80 md:h-[28rem] object-cover object-center rounded-xl" autoplay muted loop playsinline controls></video>
+                            <video src="{{ asset('storage/' . $article->video) }}" class="w-full h-80 md:h-[28rem] object-cover object-center rounded-xl cursor-pointer" autoplay muted loop playsinline controls onclick="openMediaModal('video', '{{ asset('storage/' . $article->video) }}')"></video>
                             <a href="{{ asset('storage/' . $article->video) }}" download class="absolute bottom-4 left-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10" title="Télécharger">⬇️ Télécharger</a>
-                            <button onclick="openMediaModal('video', '{{ asset('storage/' . $article->video) }}')" class="absolute bottom-4 right-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10" title="Zoom">🔍 Zoom</button>
                         </div>
                     @endif
                     @foreach($article->images as $img)
                         <div data-carousel-item class="w-full h-80 md:h-[28rem] relative">
-                            <img src="{{ asset('storage/' . $img->path) }}" alt="Image article" class="w-full h-80 md:h-[28rem] object-cover object-center rounded-xl" />
+                            <img src="{{ asset('storage/' . $img->path) }}" alt="Image article" class="w-full h-80 md:h-[28rem] object-cover object-center rounded-xl cursor-pointer" onclick="openMediaModal('image', '{{ asset('storage/' . $img->path) }}')" />
                             <a href="{{ asset('storage/' . $img->path) }}" download class="absolute bottom-4 left-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10" title="Télécharger">⬇️ Télécharger</a>
-                            <button onclick="openMediaModal('image', '{{ asset('storage/' . $img->path) }}')" class="absolute bottom-4 right-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10" title="Zoom">🔍 Zoom</button>
                         </div>
                     @endforeach
                     <button type="button" data-carousel-prev class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-blue-100 rounded-full p-2 shadow z-10 text-2xl">‹</button>
@@ -57,8 +55,34 @@
     </div>
 </div>
 @endsection
-@section('scripts')
+@push('scripts')
 <script>
+function openMediaModal(type, src) {
+    let modal = document.getElementById('media-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'media-modal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80';
+        modal.innerHTML = `
+            <div class="relative max-w-3xl w-full flex flex-col items-center">
+                <button onclick="closeMediaModal()" class="absolute top-2 right-2 bg-white text-gray-800 rounded-full p-2 shadow hover:bg-gray-200 z-10">✕</button>
+                <div id="media-modal-content" class="w-full flex justify-center items-center"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    const content = modal.querySelector('#media-modal-content');
+    if (type === 'image') {
+        content.innerHTML = `<img src="${src}" class="max-h-[80vh] max-w-full rounded shadow-lg" />`;
+    } else if (type === 'video') {
+        content.innerHTML = `<video src="${src}" controls autoplay class="max-h-[80vh] max-w-full rounded shadow-lg"></video>`;
+    }
+    modal.style.display = 'flex';
+}
+function closeMediaModal() {
+    const modal = document.getElementById('media-modal');
+    if (modal) modal.style.display = 'none';
+}
 // Carrousel auto-défilant moderne (images + vidéo)
 const imgCount = {{ $imgCount ?? 0 }};
 const hasVideo = @json(!empty($article->video));
@@ -85,10 +109,10 @@ function showCarouselItem(id, target) {
     items.forEach((img, i) => {
         if (i === target) {
             img.classList.remove('hidden');
-            indicators[i].style.opacity = 1;
+            if (indicators[i]) indicators[i].style.opacity = 1;
         } else {
             img.classList.add('hidden');
-            indicators[i].style.opacity = 0.5;
+            if (indicators[i]) indicators[i].style.opacity = 0.5;
         }
     });
 }
@@ -120,43 +144,18 @@ function stopCarouselAutoplay(id) {
         delete carouselIntervals[id];
     }
 }
-function openMediaModal(type, src) {
-    let modal = document.getElementById('media-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'media-modal';
-        modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80';
-        modal.innerHTML = `
-            <div class="relative max-w-3xl w-full flex flex-col items-center">
-                <button onclick="closeMediaModal()" class="absolute top-2 right-2 bg-white text-gray-800 rounded-full p-2 shadow hover:bg-gray-200 z-10">✕</button>
-                <div id="media-modal-content" class="w-full flex justify-center items-center"></div>
-            </div>
-        `;
-        document.body.appendChild(modal);
+document.addEventListener('DOMContentLoaded', function() {
+    const carousel = document.getElementById('carousel-{{ $article->id }}');
+    if (carousel) {
+        const prevBtn = carousel.querySelector('[data-carousel-prev]');
+        const nextBtn = carousel.querySelector('[data-carousel-next]');
+        if (prevBtn) prevBtn.onclick = () => carouselPrev({{ $article->id }});
+        if (nextBtn) nextBtn.onclick = () => carouselNext({{ $article->id }});
+        const indicators = carousel.querySelectorAll('[data-carousel-indicator]');
+        indicators.forEach((btn, i) => {
+            btn.onclick = () => carouselGoTo({{ $article->id }}, i);
+        });
     }
-    const content = modal.querySelector('#media-modal-content');
-    let downloadBtn = '';
-    let zoomBtn = '';
-    if (type === 'image') {
-        downloadBtn = `<a href="${src}" download class='absolute bottom-4 left-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10' title='Télécharger'>⬇️ Télécharger</a>`;
-        zoomBtn = `<button onclick='zoomMediaModal()' class='absolute bottom-4 right-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10' title='Zoom'>🔍 Zoom</button>`;
-        content.innerHTML = `<div class='relative w-full flex justify-center items-center'><img id='media-modal-img' src="${src}" class="max-h-[80vh] max-w-full rounded shadow-lg" />${downloadBtn}${zoomBtn}</div>`;
-    } else if (type === 'video') {
-        downloadBtn = `<a href="${src}" download class='absolute bottom-4 left-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10' title='Télécharger'>⬇️ Télécharger</a>`;
-        zoomBtn = `<button onclick='zoomMediaModal()' class='absolute bottom-4 right-4 bg-white text-blue-700 px-3 py-1 rounded shadow hover:bg-blue-100 z-10' title='Zoom'>🔍 Zoom</button>`;
-        content.innerHTML = `<div class='relative w-full flex justify-center items-center'><video id='media-modal-video' src="${src}" controls autoplay class="max-h-[80vh] max-w-full rounded shadow-lg"></video>${downloadBtn}${zoomBtn}</div>`;
-    }
-    modal.style.display = 'flex';
-}
-function closeMediaModal() {
-    const modal = document.getElementById('media-modal');
-    if (modal) modal.style.display = 'none';
-}
-function zoomMediaModal() {
-    const img = document.getElementById('media-modal-img');
-    const vid = document.getElementById('media-modal-video');
-    if (img && img.requestFullscreen) img.requestFullscreen();
-    if (vid && vid.requestFullscreen) vid.requestFullscreen();
-}
+});
 </script>
-@endsection
+@endpush

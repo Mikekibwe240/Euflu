@@ -24,10 +24,14 @@ class JoueurController extends Controller
     public function index(Request $request)
     {
         $saison = null;
+        // Correction stricte :
+        // Si saison_id est vide (Actuelle), on filtre UNIQUEMENT sur la saison active (et pas fallback sur la plus récente si aucune active)
         if ($request->filled('saison_id') && $request->saison_id !== 'all') {
-            $saison = Saison::find($request->saison_id) ?? SaisonHelper::getActiveSaison($request);
+            $saison = Saison::find($request->saison_id);
+        } elseif ($request->saison_id === '' || !$request->has('saison_id')) {
+            $saison = Saison::where('active', 1)->first();
         } else {
-            $saison = SaisonHelper::getActiveSaison($request);
+            $saison = null;
         }
         $equipes = $saison ? Equipe::where('saison_id', $saison->id)->get() : collect();
         $saisons = Saison::orderByDesc('date_debut')->get();
@@ -45,9 +49,9 @@ class JoueurController extends Controller
                 $query->where('equipe_id', $request->equipe_id);
             }
         }
-        // Only filter by saison if not 'all'
-        if ($request->filled('saison_id') && $request->saison_id !== 'all') {
-            $query->where('saison_id', $saison?->id);
+        // Filtrer par saison si une saison est définie (active ou choisie)
+        if ($saison) {
+            $query->where('saison_id', $saison->id);
         }
         $joueurs = $query->paginate(20)->withQueryString();
         return view('admin.joueurs.index', compact('joueurs', 'saison', 'equipes', 'saisons'));
@@ -94,7 +98,8 @@ class JoueurController extends Controller
                 'min:1',
                 'max:99',
                 Rule::unique('joueurs')->where(function ($query) use ($request) {
-                    return $query->where('equipe_id', $request->equipe_id);
+                    return $query->where('equipe_id', $request->equipe_id)
+                        ->whereNull('deleted_at');
                 }),
             ],
             'nationalite' => 'nullable|string|max:100',
@@ -161,7 +166,8 @@ class JoueurController extends Controller
                 'min:1',
                 'max:99',
                 Rule::unique('joueurs')->where(function ($query) use ($request) {
-                    return $query->where('equipe_id', $request->equipe_id);
+                    return $query->where('equipe_id', $request->equipe_id)
+                        ->whereNull('deleted_at');
                 })->ignore($joueur->id),
             ],
             'nationalite' => 'nullable|string|max:100',

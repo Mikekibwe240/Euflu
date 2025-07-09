@@ -25,5 +25,26 @@
 @endsection
 
 @section('content')
-<!-- Vide, à compléter section par section -->
+<div class="max-w-3xl mx-auto px-4 py-10">
+    <div class="bg-[#181d1f] rounded-lg shadow-lg border border-[#31363a] p-8">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-[#e2001a] mb-4 text-center uppercase tracking-wider">{{ $reglement->titre }}</h1>
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+            <div class="text-sm text-gray-400 font-semibold mb-2 md:mb-0">
+                Saison : <span class="text-[#6fcf97]">{{ $reglement->saison->nom ?? $reglement->saison->annee ?? '-' }}</span>
+            </div>
+            <div class="text-sm text-gray-400 font-semibold">
+                Auteur : <span class="text-white">{{ $reglement->user->name ?? '-' }}</span>
+            </div>
+            <div class="text-sm text-gray-400 font-semibold">
+                Publié le : <span class="text-white">{{ $reglement->created_at->format('d/m/Y') }}</span>
+            </div>
+        </div>
+        <div class="prose prose-invert max-w-none text-gray-200 text-lg leading-relaxed">
+            {!! nl2br(e($reglement->contenu)) !!}
+        </div>
+        <div class="mt-8 flex justify-center">
+            <a href="{{ route('public.reglements.index') }}" class="inline-block bg-[#6fcf97] text-[#23272a] font-bold px-6 py-2 rounded-full shadow hover:bg-[#23272a] hover:text-[#6fcf97] transition-all duration-300">← Retour à la liste</a>
+        </div>
+    </div>
+</div>
 @endsection

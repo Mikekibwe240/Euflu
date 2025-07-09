@@ -31,33 +31,33 @@
         </div>
         <div class="flex-1 w-full">
             <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6 text-[#e2001a]' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                <svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6 text-[#e4572e]' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                     <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 16h-1v-4h-1m4 4h-1v-4h-1m-4 4h-1v-4h-1m4 4h-1v-4h-1'/>
                 </svg>
                 Statistiques
             </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="bg-[#23272a] rounded-xl p-6 flex flex-col items-center shadow border border-[#23272a]">
-                    <div class="text-4xl font-bold text-[#e2001a] mb-2 flex items-center gap-2">
-                        <svg xmlns='http://www.w3.org/2000/svg' class='h-7 w-7' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-[#23272a] rounded-2xl p-8 flex flex-col items-center shadow border-2 border-[#e4572e] w-full max-w-xs mx-auto break-words text-center">
+                    <div class="text-5xl font-extrabold text-[#e4572e] mb-2 flex items-center gap-2 break-words">
+                        <svg xmlns='http://www.w3.org/2000/svg' class='h-8 w-8' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 6v6l4 2'/>
                         </svg>
                         {{ isset($joueur->buts) ? $joueur->buts->count() : 0 }}
                     </div>
-                    <div class="text-lg text-white font-semibold">Buts marqués</div>
+                    <div class="text-lg text-white font-semibold tracking-wide uppercase break-words">Buts marqués</div>
                 </div>
-                <div class="bg-[#23272a] rounded-xl p-6 flex flex-col items-center shadow border border-[#23272a]">
-                    <div class="text-4xl font-bold text-blue-400 mb-2 flex items-center gap-2">
-                        <svg xmlns='http://www.w3.org/2000/svg' class='h-7 w-7' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                <div class="bg-[#23272a] rounded-2xl p-8 flex flex-col items-center shadow border-2 border-[#2563eb] w-full max-w-xs mx-auto break-words text-center">
+                    <div class="text-5xl font-extrabold text-[#2563eb] mb-2 flex items-center gap-2 break-words">
+                        <svg xmlns='http://www.w3.org/2000/svg' class='h-8 w-8' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/>
                         </svg>
                         {{ isset($joueur->buts) ? $joueur->buts->pluck('rencontre_id')->unique()->count() : 0 }}
                     </div>
-                    <div class="text-lg text-white font-semibold">Matchs joués</div>
+                    <div class="text-lg text-white font-semibold tracking-wide uppercase break-words">Matchs joués</div>
                 </div>
-                <div class="bg-[#23272a] rounded-xl p-6 flex flex-col items-center shadow border border-[#23272a]">
-                    <div class="text-4xl font-bold text-yellow-400 mb-2 flex items-center gap-2">
-                        <svg xmlns='http://www.w3.org/2000/svg' class='h-7 w-7' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                <div class="bg-[#23272a] rounded-2xl p-8 flex flex-col items-center shadow border-2 border-yellow-400 w-full max-w-xs mx-auto break-words text-center">
+                    <div class="text-5xl font-extrabold text-yellow-400 mb-2 flex items-center gap-2 break-words">
+                        <svg xmlns='http://www.w3.org/2000/svg' class='h-8 w-8' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z'/>
                         </svg>
                         @php
@@ -67,7 +67,7 @@
                         @endphp
                         {{ $ratio }}
                     </div>
-                    <div class="text-lg text-white font-semibold">Ratio Buts / Match</div>
+                    <div class="text-lg text-white font-semibold tracking-wide uppercase break-words">Ratio Buts / Match</div>
                 </div>
             </div>
             <div class="bg-[#23272a] rounded-lg p-4 mt-4 border border-[#23272a]">

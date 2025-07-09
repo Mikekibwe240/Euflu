@@ -14,15 +14,9 @@ class ReglementController extends Controller
     public function index(Request $request)
     {
         $saisons = \App\Models\Saison::orderByDesc('date_debut')->get();
-        $saison = null;
-        if ($request->filled('saison_id')) {
-            $saison = \App\Models\Saison::find($request->saison_id);
-        } else {
-            $saison = \App\Models\Saison::where('active', 1)->first();
-        }
         $query = Reglement::with(['saison', 'user']);
-        if ($saison) {
-            $query->where('saison_id', $saison->id);
+        if ($request->filled('saison_id')) {
+            $query->where('saison_id', $request->saison_id);
         }
         if ($request->filled('titre')) {
             $query->where('titre', 'like', '%' . $request->titre . '%');
@@ -43,6 +37,7 @@ class ReglementController extends Controller
             });
         }
         $reglements = $query->orderByDesc('created_at')->paginate(10);
+        $saison = null; // Ne pas filtrer par saison par défaut
         return view('public.reglements', compact('reglements', 'saisons', 'saison'));
     }
 

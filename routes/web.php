@@ -100,6 +100,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/classement-buteurs/{pool}', [\App\Http\Controllers\Admin\ClassementButeursAdminController::class, 'index'])->name('classement_buteurs');
     // Suppression d'un média d'un article (image ou vidéo)
     Route::delete('/articles/{article}/remove-media', [\App\Http\Controllers\Admin\ArticleController::class, 'removeMedia'])->name('articles.removeMedia');
+    Route::get('/equipes/search', [App\Http\Controllers\Admin\EquipeController::class, 'ajaxSearch'])->name('equipes.ajaxSearch');
+    Route::post('/equipes/{equipe}/affecter-pool', [App\Http\Controllers\Admin\EquipeController::class, 'affecterPool'])->name('equipes.affecterPool');
+    Route::post('/equipes/{equipe}/retirer-pool', [App\Http\Controllers\Admin\EquipeController::class, 'retirerPool'])->name('equipes.retirerPool');
 });
 
 // Auth routes classiques (login/logout)
@@ -152,5 +155,6 @@ Route::get('/equipes', [App\Http\Controllers\Public\EquipeController::class, 'in
 
 // Route publique pour afficher une équipe (doit être placée APRÈS les routes admin pour éviter les conflits)
 Route::get('/equipes/{equipe}', [App\Http\Controllers\EquipePublicController::class, 'show'])->name('equipes.show');
+Route::view('/a-propos', 'public.a_propos')->name('a_propos');
 
 require __DIR__.'/auth.php';

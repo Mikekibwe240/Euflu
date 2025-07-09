@@ -7,8 +7,8 @@
 @endsection
 
 @section('content')
-<div class="max-w-lg mx-auto bg-white dark:bg-gray-800 rounded shadow p-6">
-    <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Modifier le joueur</h2>
+<div class="max-w-lg mx-auto bg-bl-card border border-bl-border rounded-xl shadow-lg p-8 mt-8">
+    <h2 class="text-2xl font-extrabold mb-6 text-white tracking-wide">Modifier le joueur</h2>
     @if(session('success'))
         <x-alert type="success" :message="session('success')" />
     @endif
@@ -18,66 +18,68 @@
     @if($errors->any())
         <x-alert type="error" :message="$errors->first()" />
     @endif
-    <form action="{{ route('admin.joueurs.update', $joueur) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.joueurs.update', $joueur) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Nom</label>
-            <input type="text" name="nom" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required value="{{ old('nom', $joueur->nom) }}">
-            @error('nom')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        <div>
+            <label class="block text-white font-semibold mb-1">Nom</label>
+            <input type="text" name="nom" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" required value="{{ old('nom', $joueur->nom) }}">
+            @error('nom')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Prénom</label>
-            <input type="text" name="prenom" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required value="{{ old('prenom', $joueur->prenom) }}">
-            @error('prenom')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        <div>
+            <label class="block text-white font-semibold mb-1">Prénom</label>
+            <input type="text" name="prenom" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" required value="{{ old('prenom', $joueur->prenom) }}">
+            @error('prenom')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Date de naissance</label>
-            <input type="date" name="date_naissance" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required value="{{ old('date_naissance', $joueur->date_naissance) }}">
-            @error('date_naissance')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        <div>
+            <label class="block text-white font-semibold mb-1">Date de naissance</label>
+            <input type="date" name="date_naissance" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" required value="{{ old('date_naissance', $joueur->date_naissance) }}">
+            @error('date_naissance')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Poste</label>
-            <input type="text" name="poste" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required value="{{ old('poste', $joueur->poste) }}">
-            @error('poste')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        <div>
+            <label class="block text-white font-semibold mb-1">Poste</label>
+            <input type="text" name="poste" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" required value="{{ old('poste', $joueur->poste) }}">
+            @error('poste')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Équipe</label>
-            <select name="equipe_id" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+        <div>
+            <label class="block text-white font-semibold mb-1">Équipe</label>
+            <select name="equipe_id" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition">
                 <option value="">Joueur libre (sans équipe)</option>
                 @foreach($equipes as $equipe)
                     <option value="{{ $equipe->id }}" @if(old('equipe_id', $joueur->equipe_id) == $equipe->id) selected @endif>{{ $equipe->nom }}</option>
                 @endforeach
             </select>
-            @error('equipe_id')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+            @error('equipe_id')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Photo (optionnelle)</label>
-            <input type="file" name="photo" class="w-full mt-1 p-2 border rounded dark:bg-gray-700 dark:text-white">
+        <div>
+            <label class="block text-white font-semibold mb-1">Photo (optionnelle)</label>
+            <input type="file" name="photo" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition">
             @if($joueur->photo)
                 <div class="mt-2">
-                    <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo actuelle" class="h-12 w-12 rounded-full object-cover border border-gray-200 dark:border-gray-700 bg-white" onerror="this.style.display='none'">
+                    <img src="{{ asset('storage/' . $joueur->photo) }}" alt="Photo actuelle" class="h-12 w-12 rounded-full object-cover border border-bl-border bg-bl-dark" onerror="this.style.display='none'">
                 </div>
             @endif
-            @error('photo')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+            @error('photo')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Numéro de licence</label>
-            <input type="text" name="numero_licence" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" value="{{ old('numero_licence', $joueur->numero_licence) }}">
-            @error('numero_licence')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        <div>
+            <label class="block text-white font-semibold mb-1">Numéro de licence</label>
+            <input type="text" name="numero_licence" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" value="{{ old('numero_licence', $joueur->numero_licence) }}">
+            @error('numero_licence')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Numéro (dossard)</label>
-            <input type="text" name="numero_dossard" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" value="{{ old('numero_dossard', $joueur->numero_dossard) }}">
-            @error('numero_dossard')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        <div>
+            <label class="block text-white font-semibold mb-1">Numéro (dossard)</label>
+            <input type="text" name="numero_dossard" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" value="{{ old('numero_dossard', $joueur->numero_dossard) }}">
+            @error('numero_dossard')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-200">Nationalité</label>
-            <input type="text" name="nationalite" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" value="{{ old('nationalite', $joueur->nationalite) }}">
-            @error('nationalite')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+        <div>
+            <label class="block text-white font-semibold mb-1">Nationalité</label>
+            <input type="text" name="nationalite" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" value="{{ old('nationalite', $joueur->nationalite) }}">
+            @error('nationalite')<div class="text-red-400 text-sm mt-1">{{ $message }}</div>@enderror
         </div>
-        <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">Enregistrer</button>
-        <a href="{{ route('admin.joueurs.index') }}" class="ml-2 text-gray-600 dark:text-gray-300 hover:underline">Annuler</a>
+        <div class="flex items-center gap-4 mt-6">
+            <button type="submit" class="bg-bl-accent hover:bg-bl-dark text-white font-bold px-6 py-2 rounded shadow border border-bl-accent transition">Enregistrer</button>
+            <a href="{{ route('admin.joueurs.index') }}" class="text-gray-400 hover:text-bl-accent underline transition">Annuler</a>
+        </div>
     </form>
 </div>
 @endsection

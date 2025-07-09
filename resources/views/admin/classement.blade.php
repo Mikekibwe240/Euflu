@@ -4,13 +4,21 @@
 
 @section('content')
 <div class="container mx-auto py-8">
-    <h1 class="text-3xl font-bold mb-8 text-center text-blue-700 dark:text-blue-300">CLASSEMENTS D'EQUIPES</h1>
-    <div class="mb-6 flex justify-start">
-        <a href="/admin" class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded shadow transition">&larr; Retour</a>
+    <h1 class="text-3xl font-bold mb-8 text-center text-white">CLASSEMENTS D'EQUIPES</h1>
+    <div class="mb-4 text-center text-lg font-semibold text-white">
+        Saison active :
+        <span class="font-bold">{{ $selectedSaison?->nom ?? $selectedSaison?->annee ?? 'Aucune' }}</span>
     </div>
-    <form method="GET" action="" class="mb-6 flex flex-wrap gap-2 items-center justify-center">
-        <label for="pool" class="font-semibold">Filtrer par pool :</label>
-        <select name="pool" id="pool" class="border rounded px-2 py-1" onchange="this.form.submit()">
+    <form method="GET" action="" class="mb-6 flex flex-wrap gap-2 items-center justify-center bg-bl-card p-4 rounded-lg shadow border border-bl-border">
+        <label for="saison_id" class="font-semibold text-gray-200">Filtrer par saison :</label>
+        <select name="saison_id" id="saison_id" class="border border-bl-border rounded px-2 py-1 bg-gray-800 text-white" onchange="this.form.submit()">
+            <option value="">Actuelle</option>
+            @foreach($saisons as $s)
+                <option value="{{ $s->id }}" @if(request('saison_id', $selectedSaison?->id) == $s->id) selected @endif>{{ $s->nom ?? $s->annee }}</option>
+            @endforeach
+        </select>
+        <label for="pool" class="font-semibold ml-4 text-gray-200">Filtrer par pool :</label>
+        <select name="pool" id="pool" class="border border-bl-border rounded px-2 py-1 bg-gray-800 text-white" onchange="this.form.submit()">
             <option value="">Tous les pools</option>
             @foreach($pools as $p)
                 <option value="{{ $p->nom }}" @if(request('pool', $selectedPool) == $p->nom) selected @endif>Pool {{ $p->nom }}</option>
@@ -38,78 +46,78 @@
                     ];
                 })->sortByDesc('points')->sortByDesc('gd')->sortByDesc('bp')->values();
             @endphp
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-8">
+            <div class="bg-bl-card border border-bl-border rounded-xl shadow-lg p-6 mb-8">
                 <div class="flex flex-wrap gap-4 mb-4 items-center justify-between">
-                    <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-300">Pool {{ $pool->nom }}</h2>
+                    <h2 class="text-2xl font-bold text-white">Pool {{ $pool->nom }}</h2>
                     <div class="flex flex-wrap gap-2">
-                        <div class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px]">
+                        <div class="bg-green-900 text-green-400 px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-green-700">
                             <span class="font-bold text-lg">{{ $classement->where('qualifie', true)->count() }}</span>
                             <span class="text-xs font-semibold">Qualifiés</span>
                         </div>
-                        <div class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px]">
+                        <div class="bg-red-900 text-white px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-red-700">
                             <span class="font-bold text-lg">{{ $classement->where('relegue', true)->count() }}</span>
                             <span class="text-xs font-semibold">Relégués</span>
                         </div>
-                        <div class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px]">
+                        <div class="bg-bl-card text-white px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-bl-border">
                             <span class="font-bold text-lg">{{ $classement->count() }}</span>
                             <span class="text-xs font-semibold">Équipes</span>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-semibold">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-700 text-gray-200 text-xs font-semibold border border-bl-border">
                             Journées&nbsp;: <span class="ml-1 font-bold">{{ $classement->max('journee') ?? '-' }}</span>
                         </span>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-4 mb-4">
-                    <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
-                        <span class="font-bold text-lg text-blue-700 dark:text-blue-200">Total buts</span>
+                    <div class="bg-bl-card border border-bl-border rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
+                        <span class="font-bold text-lg text-white">Total buts</span>
                         <span class="text-xl font-bold">{{ $classement->sum('bp') }}</span>
                     </div>
-                    <div class="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
-                        <span class="font-bold text-lg text-green-700 dark:text-green-200">Total matchs</span>
+                    <div class="bg-bl-card border border-bl-border rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
+                        <span class="font-bold text-lg text-green-400">Total matchs</span>
                         <span class="text-xl font-bold">{{ $classement->sum('mj') }}</span>
                     </div>
-                    <div class="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
-                        <span class="font-bold text-lg text-yellow-700 dark:text-yellow-200">Ratio buts/match</span>
+                    <div class="bg-bl-card border border-bl-border rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
+                        <span class="font-bold text-lg text-yellow-400">Ratio buts/match</span>
                         <span class="text-xl font-bold">{{ $classement->sum('mj') ? number_format($classement->sum('bp') / $classement->sum('mj'), 2) : '-' }}</span>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-4 mb-4">
-                    <a href="{{ route('admin.classement_buteurs', ['pool' => $pool->id]) }}" class="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition">TOPS BUTEURS</a>
+                    <a href="{{ route('admin.classement_buteurs', ['pool' => $pool->id]) }}" class="bg-bl-accent text-white px-4 py-2 rounded shadow hover:bg-bl-dark hover:text-bl-accent border border-bl-accent transition">TOPS BUTEURS</a>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white dark:bg-gray-900 rounded-2xl shadow-lg text-center border border-gray-200 dark:border-gray-700">
-                        <thead class="bg-gradient-to-r from-blue-200 via-blue-100 to-blue-50 dark:from-blue-900 dark:via-blue-800 dark:to-blue-700">
+                    <table class="min-w-full bg-bl-card text-white rounded-2xl shadow-lg text-center border border-bl-border">
+                        <thead class="bg-[#23272a]">
                             <tr>
-                                <th class="px-2 py-2 rounded-tl-2xl">PL</th>
-                                <th class="px-2 py-2">EQUIPES</th>
-                                <th class="px-2 py-2">MJ</th>
-                                <th class="px-2 py-2">MG</th>
-                                <th class="px-2 py-2">MP</th>
-                                <th class="px-2 py-2">MN</th>
-                                <th class="px-2 py-2">BP</th>
-                                <th class="px-2 py-2">BC</th>
-                                <th class="px-2 py-2">GD</th>
-                                <th class="px-2 py-2">PTS</th>
+                                <th class="px-2 py-2 rounded-tl-2xl text-white">PL</th>
+                                <th class="px-2 py-2 text-white">EQUIPES</th>
+                                <th class="px-2 py-2 text-white">MJ</th>
+                                <th class="px-2 py-2 text-white">MG</th>
+                                <th class="px-2 py-2 text-white">MP</th>
+                                <th class="px-2 py-2 text-white">MN</th>
+                                <th class="px-2 py-2 text-white">BP</th>
+                                <th class="px-2 py-2 text-white">BC</th>
+                                <th class="px-2 py-2 text-white">GD</th>
+                                <th class="px-2 py-2 text-white">PTS</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($classement as $index => $item)
-                                <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900 transition cursor-pointer" onclick="window.location='{{ route('admin.equipes.show', $item->equipe->id) }}'">
-                                    <td class="px-2 py-2 font-bold">{{ $index+1 }}</td>
-                                    <td class="px-2 py-2 font-semibold text-blue-700 dark:text-blue-200 flex items-center gap-2">
+                                <tr class="border-b border-bl-border hover:bg-bl-dark transition cursor-pointer" onclick="window.location='{{ route('admin.equipes.show', $item->equipe->id) }}'">
+                                    <td class="px-2 py-2 font-bold text-white">{{ $index+1 }}</td>
+                                    <td class="px-2 py-2 font-semibold text-white flex items-center gap-2">
                                         <x-team-logo :team="$item->equipe" :size="28" />
                                         <span>{{ $item->equipe->nom ?? '-' }}</span>
                                     </td>
-                                    <td class="px-2 py-2">{{ $item->mj }}</td>
-                                    <td class="px-2 py-2">{{ $item->mg }}</td>
-                                    <td class="px-2 py-2">{{ $item->mp }}</td>
-                                    <td class="px-2 py-2">{{ $item->mn }}</td>
-                                    <td class="px-2 py-2">{{ $item->bp }}</td>
-                                    <td class="px-2 py-2">{{ $item->bc }}</td>
-                                    <td class="px-2 py-2">{{ $item->gd }}</td>
-                                    <td class="px-2 py-2 font-bold">{{ $item->points }}</td>
+                                    <td class="px-2 py-2 text-white">{{ $item->mj }}</td>
+                                    <td class="px-2 py-2 text-white">{{ $item->mg }}</td>
+                                    <td class="px-2 py-2 text-white">{{ $item->mp }}</td>
+                                    <td class="px-2 py-2 text-white">{{ $item->mn }}</td>
+                                    <td class="px-2 py-2 text-white">{{ $item->bp }}</td>
+                                    <td class="px-2 py-2 text-white">{{ $item->bc }}</td>
+                                    <td class="px-2 py-2 text-white">{{ $item->gd }}</td>
+                                    <td class="px-2 py-2 font-bold text-white">{{ $item->points }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

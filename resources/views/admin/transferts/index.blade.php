@@ -4,25 +4,26 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto py-8">
-    <h1 class="text-2xl font-bold mb-6">Transferts de joueurs</h1>
+    <button onclick="window.history.back()" class="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 border border-yellow-500 transition">← Retour</button>
+    <h1 class="text-2xl font-bold mb-6 text-bl-accent">Transferts de joueurs</h1>
     @if(session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded">{{ session('success') }}</div>
+        <x-alert type="success" :message="session('success')" class="mb-6" />
     @endif
-    <form method="POST" action="{{ route('admin.transferts.store') }}" class="space-y-6">
+    <form method="POST" action="{{ route('admin.transferts.store') }}" class="space-y-6 bg-bl-card p-6 rounded-lg shadow border border-bl-border">
         @csrf
         <div>
-            <label class="block font-semibold mb-2">Rechercher un joueur à transférer</label>
-            <input type="text" name="joueur_search" id="joueur_search" placeholder="Nom, prénom..." autocomplete="off" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+            <label class="block font-semibold mb-2 text-white">Rechercher un joueur à transférer</label>
+            <input type="text" name="joueur_search" id="joueur_search" placeholder="Nom, prénom..." autocomplete="off" class="w-full px-4 py-2 border border-bl-border rounded bg-gray-800 text-white focus:ring-2 focus:ring-bl-accent">
             <div id="joueur_results" class="mt-2"></div>
         </div>
         <div>
-            <label class="block font-semibold mb-2">Nouvelle équipe (ou libre)</label>
-            <input type="text" name="equipe_search" id="equipe_search" placeholder="Nom de l'équipe... ou tapez 'libre'" autocomplete="off" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+            <label class="block font-semibold mb-2 text-white">Nouvelle équipe (ou libre)</label>
+            <input type="text" name="equipe_search" id="equipe_search" placeholder="Nom de l'équipe... ou tapez 'libre'" autocomplete="off" class="w-full px-4 py-2 border border-bl-border rounded bg-gray-800 text-white focus:ring-2 focus:ring-bl-accent">
             <div id="equipe_results" class="mt-2"></div>
         </div>
         <input type="hidden" name="joueur_id" id="joueur_id">
         <input type="hidden" name="equipe_id" id="equipe_id">
-        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">Valider le transfert</button>
+        <button type="submit" class="px-6 py-2 bg-bl-accent text-white rounded font-bold hover:bg-bl-dark hover:text-bl-accent border border-bl-accent transition">Valider le transfert</button>
     </form>
 </div>
 <script>

@@ -23,36 +23,35 @@
             <div class="overflow-x-auto rounded-lg shadow">
                 <table class="min-w-full bg-[#181d1f] text-white rounded-lg">
                     <thead>
-                        <tr class="bg-[#23272a] text-[#e2001a]">
-                            <th class="px-4 py-2 text-left">#</th>
-                            <th class="px-4 py-2 text-left">Joueur</th>
-                            <th class="px-4 py-2 text-left">Photo</th>
-                            <th class="px-4 py-2 text-left">Équipe</th>
-                            <th class="px-4 py-2 text-left">Buts</th>
-                            <th class="px-4 py-2 text-left">Matchs</th>
-                            <th class="px-4 py-2 text-left">Ratio</th>
+                        <tr class="bg-[#23272a] text-white uppercase text-base">
+                            <th class="px-4 py-2 text-center font-extrabold">#</th>
+                            <th class="px-4 py-2 text-center font-extrabold">Joueur</th>
+                            <th class="px-4 py-2 text-center font-extrabold">Équipe</th>
+                            <th class="px-4 py-2 text-center font-extrabold">Buts</th>
+                            <th class="px-4 py-2 text-center font-extrabold">Matchs</th>
+                            <th class="px-4 py-2 text-center font-extrabold">Ratio</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php $__currentLoopData = $pool->buteurs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $buteur): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr class="border-b border-[#23272a] hover:bg-[#23272a] transition cursor-pointer" onclick="window.location='<?php echo e(url('/joueurs/'.$buteur->id)); ?>'">
-                                <td class="px-4 py-2"><?php echo e($index + 1); ?></td>
-                                <td class="px-4 py-2 font-bold">
-                                    <a href="<?php echo e(url('/joueurs/'.$buteur->id)); ?>" class="hover:underline text-white"><?php echo e($buteur->nom); ?> <?php echo e($buteur->prenom); ?></a>
+                            <tr class="border-b border-[#23272a] hover:bg-[#23272a] transition cursor-pointer">
+                                <td class="px-4 py-2 text-center"><?php echo e($index + 1); ?></td>
+                                <td class="px-4 py-2 font-bold text-center">
+                                    <a href="<?php echo e(url('/joueurs/'.$buteur->id)); ?>" class="flex items-center gap-2 justify-center hover:underline text-white">
+                                        <?php if($buteur->photo): ?>
+                                            <img src="<?php echo e(asset('storage/'.$buteur->photo)); ?>" alt="Photo" class="h-10 w-10 rounded-full object-cover bg-gray-700 border border-[#23272a]">
+                                        <?php else: ?>
+                                            <span class="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-8 w-8">
+                                                    <circle cx="12" cy="8" r="4"/>
+                                                    <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
+                                                </svg>
+                                            </span>
+                                        <?php endif; ?>
+                                        <span><?php echo e($buteur->nom); ?> <?php echo e($buteur->prenom); ?></span>
+                                    </a>
                                 </td>
-                                <td class="px-4 py-2">
-                                    <?php if($buteur->photo): ?>
-                                        <img src="<?php echo e(asset('storage/'.$buteur->photo)); ?>" alt="Photo" class="h-10 w-10 rounded-full object-cover bg-gray-700 border border-[#23272a]">
-                                    <?php else: ?>
-                                        <div class="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="h-8 w-8">
-                                                <circle cx="12" cy="8" r="4"/>
-                                                <path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/>
-                                            </svg>
-                                        </div>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="px-4 py-2 flex items-center gap-2">
+                                <td class="px-4 py-2 flex items-center gap-2 justify-center text-center">
                                     <?php if($buteur->equipe): ?>
                                         <?php if (isset($component)) { $__componentOriginal5564dd85bf2706938f671f4ed6c78011 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal5564dd85bf2706938f671f4ed6c78011 = $attributes; } ?>
@@ -83,9 +82,9 @@
                                     <?php endif; ?>
                                     <span><?php echo e($buteur->equipe->nom ?? '-'); ?></span>
                                 </td>
-                                <td class="px-4 py-2 text-[#e2001a] font-extrabold text-lg"><?php echo e($buteur->buts_count ?? 0); ?></td>
-                                <td class="px-4 py-2 text-gray-300 font-semibold"><?php echo e($buteur->buts ? $buteur->buts->pluck('rencontre_id')->unique()->count() : 0); ?></td>
-                                <td class="px-4 py-2 text-gray-300 font-semibold">
+                                <td class="px-4 py-2 font-extrabold text-lg text-center text-white"><?php echo e($buteur->buts_count ?? 0); ?></td>
+                                <td class="px-4 py-2 text-gray-300 font-semibold text-center"><?php echo e($buteur->buts ? $buteur->buts->pluck('rencontre_id')->unique()->count() : 0); ?></td>
+                                <td class="px-4 py-2 text-green-400 font-semibold text-center">
                                     <?php
                                         $matchs = $buteur->buts ? $buteur->buts->pluck('rencontre_id')->unique()->count() : 0;
                                         $ratio = ($matchs > 0) ? round(($buteur->buts_count ?? 0) / $matchs, 2) : 0;
@@ -100,7 +99,28 @@
             </div>
         </div>
     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <div class="text-white">Aucun pool trouvé.</div>
+        <?php
+            $hasFilter = request()->has('saison_id') || request()->has('titre') || request()->has('auteur') || request()->has('q');
+        ?>
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded text-center">
+            <?php if($hasFilter): ?>
+                Aucun règlement ne correspond à vos critères de recherche.
+                <?php
+                    $activeFilters = collect([
+                        request('saison_id') ? 'Saison' : null,
+                        request('titre') ? 'Titre' : null,
+                        request('auteur') ? 'Auteur' : null,
+                        request('q') ? 'Recherche' : null,
+                    ])->filter()->implode(', ');
+                ?>
+                <?php if($activeFilters): ?>
+                    <br><span class="font-semibold">Filtres actifs :</span> <?php echo e($activeFilters); ?>
+
+                <?php endif; ?>
+            <?php else: ?>
+                Aucun pool trouvé.
+            <?php endif; ?>
+        </div>
     <?php endif; ?>
 </div>
 <?php $__env->stopSection(); ?>

@@ -46,8 +46,42 @@ class TransfertController extends Controller
         $fromEquipeId = $joueur->equipe_id;
         $toEquipeId = $request->equipe_id;
         $type = $toEquipeId ? ($fromEquipeId ? 'transfert' : 'affectation') : 'liberation';
+
+        // Si affectation/transfert vers une équipe, vérifier l'unicité du numéro de dossard
+        if ($toEquipeId) {
+            if ($joueur->numero_dossard) {
+                $exists = Joueur::where('equipe_id', $toEquipeId)
+                    ->where('numero_dossard', $joueur->numero_dossard)
+                    ->where('id', '!=', $joueur->id)
+                    ->exists();
+                if ($exists) {
+                    // Attribuer le plus petit numéro libre (1 à 99)
+                    $used = Joueur::where('equipe_id', $toEquipeId)
+                        ->whereNotNull('numero_dossard')
+                        ->pluck('numero_dossard')->toArray();
+                    for ($i = 1; $i <= 99; $i++) {
+                        if (!in_array((string)$i, $used, true)) {
+                            $joueur->numero_dossard = (string)$i;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // Si le joueur n'a pas de numéro, lui en attribuer un libre
+                $used = Joueur::where('equipe_id', $toEquipeId)
+                    ->whereNotNull('numero_dossard')
+                    ->pluck('numero_dossard')->toArray();
+                for ($i = 1; $i <= 99; $i++) {
+                    if (!in_array((string)$i, $used, true)) {
+                        $joueur->numero_dossard = (string)$i;
+                        break;
+                    }
+                }
+            }
+        }
         $joueur->equipe_id = $toEquipeId;
         $joueur->save();
+        
         \App\Models\Transfert::create([
             'joueur_id' => $joueur->id,
             'from_equipe_id' => $fromEquipeId,
@@ -61,10 +95,10 @@ class TransfertController extends Controller
         } elseif ($type === 'transfert') {
             $from = $fromEquipeId ? (\App\Models\Equipe::find($fromEquipeId)?->nom ?? 'Inconnue') : 'Aucune';
             $to = $toEquipeId ? (\App\Models\Equipe::find($toEquipeId)?->nom ?? 'Inconnue') : 'Libre';
-            $msg = 'Le joueur ' . $joueur->nom . ' ' . $joueur->prenom . ' a été transféré de ' . $from . ' à ' . $to . '.';
+            $msg = 'Le joueur ' . $joueur->nom . ' ' . $joueur->prenom . ' a été transféré de ' . $from . ' à ' . $to . ' (dossard: ' . ($joueur->numero_dossard ?? '-') . ').';
         } elseif ($type === 'affectation') {
             $to = $toEquipeId ? (\App\Models\Equipe::find($toEquipeId)?->nom ?? 'Inconnue') : 'Libre';
-            $msg = 'Le joueur ' . $joueur->nom . ' ' . $joueur->prenom . ' a été affecté à l\'équipe ' . $to . '.';
+            $msg = 'Le joueur ' . $joueur->nom . ' ' . $joueur->prenom . ' a été affecté à l\'équipe ' . $to . ' (dossard: ' . ($joueur->numero_dossard ?? '-') . ').';
         }
         return redirect()->route('admin.transferts.index')->with('success', $msg);
     }

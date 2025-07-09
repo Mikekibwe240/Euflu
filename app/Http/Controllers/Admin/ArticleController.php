@@ -18,14 +18,13 @@ class ArticleController extends Controller
     {
         $saisons = Saison::orderByDesc('date_debut')->get();
         $saison = null;
-        if ($request->filled('saison_id')) {
-            $saison = Saison::find($request->saison_id);
-        } else {
-            $saison = Saison::where('active', 1)->first();
-        }
         $query = Article::with(['saison', 'user']);
-        if ($saison) {
-            $query->where('saison_id', $saison->id);
+        // Correction : si saison_id est vide (Toutes), ne pas filtrer. Sinon, filtrer sur la saison choisie.
+        if ($request->filled('saison_id') && $request->saison_id !== '') {
+            $saison = Saison::find($request->saison_id);
+            if ($saison) {
+                $query->where('saison_id', $saison->id);
+            }
         }
         if ($request->filled('titre')) {
             $query->where('titre', $request->titre);
@@ -133,12 +132,8 @@ class ArticleController extends Controller
         $data['date_publication'] = $request->filled('published_at') ? substr($request->published_at, 0, 10) : now()->toDateString();
         $data['updated_by'] = \Auth::id();
         $article->update($data);
-        // Suppression des anciennes images si de nouvelles images sont uploadées
+        // Ajout des nouvelles images sans supprimer les anciennes
         if ($request->hasFile('images')) {
-            foreach ($article->images as $img) {
-                \Storage::disk('public')->delete($img->path);
-                $img->delete();
-            }
             foreach ($request->file('images') as $img) {
                 if ($img) {
                     $path = $img->store('articles', 'public');

@@ -14,11 +14,25 @@ class ReglementController extends Controller
      */
     public function index(Request $request)
     {
-        $saison = SaisonHelper::getActiveSaison($request);
         $saisons = \App\Models\Saison::orderByDesc('date_debut')->get();
+        $saison = null;
         $query = Reglement::with(['saison', 'user', 'updatedBy']);
-        if ($saison) {
-            $query->where('saison_id', $saison->id);
+        // Correction stricte :
+        // - Si saison_id == 'all' ou non présent, ne pas filtrer (toutes saisons)
+        // - Si saison_id == '' (Actuelle), filtrer UNIQUEMENT sur la saison active
+        // - Sinon, filtrer sur la saison choisie
+        if ($request->filled('saison_id') && $request->saison_id !== 'all') {
+            if ($request->saison_id === '') {
+                $saison = \App\Models\Saison::where('active', 1)->first();
+                if ($saison) {
+                    $query->where('saison_id', $saison->id);
+                }
+            } else {
+                $saison = \App\Models\Saison::find($request->saison_id);
+                if ($saison) {
+                    $query->where('saison_id', $saison->id);
+                }
+            }
         }
         if ($request->filled('titre')) {
             $query->where('titre', 'like', '%' . $request->titre . '%');

@@ -63,8 +63,27 @@
                         <td class="px-4 py-3"><?php echo e($reglement->created_at->format('d/m/Y')); ?></td>
                     </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <?php
+                        $hasFilter = request()->has('saison_id') || request()->has('titre') || request()->has('auteur') || request()->has('q');
+                        $activeFilters = collect([
+                            request('saison_id') ? 'Saison' : null,
+                            request('titre') ? 'Titre' : null,
+                            request('auteur') ? 'Auteur' : null,
+                            request('q') ? 'Recherche' : null,
+                        ])->filter()->implode(', ');
+                    ?>
                     <tr>
-                        <td colspan="5" class="px-4 py-6 text-center text-gray-400">Aucun règlement trouvé.</td>
+                        <td colspan="5" class="px-4 py-6 text-center text-yellow-700 bg-yellow-100 border-l-4 border-yellow-500 rounded">
+                            <?php if($hasFilter): ?>
+                                Aucun règlement ne correspond à vos critères de recherche.
+                                <?php if($activeFilters): ?>
+                                    <br><span class="font-semibold">Filtres actifs :</span> <?php echo e($activeFilters); ?>
+
+                                <?php endif; ?>
+                            <?php else: ?>
+                                Aucun règlement trouvé.
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endif; ?>
             </tbody>

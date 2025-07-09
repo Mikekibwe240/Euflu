@@ -1,5 +1,5 @@
 
-<?php $__env->startSection('title', 'Classement Bundesliga Style'); ?>
+<?php $__env->startSection('title', 'Classement EUFLU'); ?>
 <?php $__env->startSection('content'); ?>
 <div class="max-w-6xl mx-auto mt-10 mb-8">
     <?php

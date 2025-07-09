@@ -82,14 +82,19 @@ class JoueurController extends Controller
         if (request()->filled('equipe_id')) {
             if (request('equipe_id') === 'libre') {
                 $query->whereNull('equipe_id');
+                // Ne pas filtrer par saison pour les joueurs libres (comme l'admin)
             } else {
                 $clubSelected = \App\Models\Equipe::find(request('equipe_id'));
                 $query->where('equipe_id', request('equipe_id'));
+                if ($saison_id && $saison_id !== 'all') {
+                    $query->where('saison_id', $saison?->id);
+                }
             }
-        }
-        // Filtre saison
-        if ($saison_id && $saison_id !== 'all') {
-            $query->where('saison_id', $saison?->id);
+        } else {
+            // Filtre saison si pas de filtre équipe
+            if ($saison_id && $saison_id !== 'all') {
+                $query->where('saison_id', $saison?->id);
+            }
         }
         // Recherche nom/prénom
         if (request()->filled('nom')) {

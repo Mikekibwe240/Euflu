@@ -9,7 +9,7 @@ class SaisonHelper
     /**
      * Retourne la saison à utiliser (filtrée, active, ou fallback)
      */
-    public static function getActiveSaison(Request $request = null)
+    public static function getActiveSaison(?Request $request = null)
     {
         $request = $request ?? request();
         if ($request->filled('saison_id')) {

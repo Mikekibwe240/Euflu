@@ -1,6 +1,6 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 min-h-[320px] flex flex-col justify-between">
-        <h3 class="text-lg font-bold mb-4 text-blue-700 dark:text-blue-300">Évolution du nombre de joueurs et équipes</h3>
+    <div class="bg-bl-card rounded-lg shadow p-6 min-h-[320px] flex flex-col justify-between">
+        <h3 class="text-lg font-bold mb-4 text-white">Évolution du nombre de joueurs et équipes</h3>
         <canvas id="chart-joueurs-equipes" class="w-full h-64"></canvas>
         <div id="no-joueurs-equipes-data" class="text-center text-gray-400 mt-8">
             <?php if(count($evolutionLabels) <= 1): ?>
@@ -10,8 +10,8 @@
             <?php endif; ?>
         </div>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 min-h-[320px] flex flex-col justify-between">
-        <h3 class="text-lg font-bold mb-4 text-indigo-700 dark:text-indigo-300">Répartition des buts et cartons</h3>
+    <div class="bg-bl-card rounded-lg shadow p-6 min-h-[320px] flex flex-col justify-between">
+        <h3 class="text-lg font-bold mb-4 text-white">Répartition des buts et cartons</h3>
         <canvas id="chart-buts-cartons" class="w-full h-64"></canvas>
         <div id="no-buts-cartons-data" class="text-center text-gray-400 mt-8">Données fictives : total actuel.</div>
     </div>

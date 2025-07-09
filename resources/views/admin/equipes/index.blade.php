@@ -7,15 +7,18 @@
 @endsection
 
 @section('content')
+@if(session('success'))
+    <div class="mb-4 p-4 rounded bg-green-100 text-green-800 border border-green-300 shadow">{{ session('success') }}</div>
+@endif
 <div class="mb-6 flex justify-between items-center">
-    <a href="{{ route('admin.equipes.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition">Ajouter une équipe</a>
+    <a href="{{ route('admin.equipes.create') }}" class="bg-green-700 text-white px-4 py-2 rounded-lg shadow hover:bg-green-800 border border-green-700 transition">Ajouter une équipe</a>
     <div class="flex gap-2">
-        <a href="{{ route('admin.equipes.export', request()->all()) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 transition">Exporter Excel</a>
-        <a href="{{ route('admin.equipes.exportPdf', request()->all()) }}" class="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-700 transition">Exporter PDF</a>
+        <a href="{{ route('admin.equipes.export', request()->all()) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 border border-yellow-500 transition">Exporter Excel</a>
+        <a href="{{ route('admin.equipes.exportPdf') }}" class="inline-block px-4 py-2 bg-bl-accent text-white rounded hover:bg-bl-dark transition">Exporter PDF</a>
     </div>
 </div>
-<button onclick="window.history.back()" class="mb-4 inline-block bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 transition">← Retour</button>
-<form method="GET" action="{{ route('admin.equipes.index') }}" class="mb-4 flex flex-wrap gap-4 items-end bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+<button onclick="window.history.back()" class="mb-4 inline-block bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 border border-yellow-500 transition">← Retour</button>
+<form method="GET" action="{{ route('admin.equipes.index') }}" class="mb-4 flex flex-wrap gap-4 items-end bg-bl-card p-4 rounded-lg shadow border border-bl-border">
     <div>
         <label class="block font-semibold text-gray-700 dark:text-gray-200">Nom</label>
         <input type="text" name="nom" value="{{ request('nom') }}" class="form-input w-48 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
@@ -45,40 +48,48 @@
     </div>
     <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-900 transition">Rechercher</button>
 </form>
-<div class="mb-4 flex flex-wrap gap-4 items-end">
-    <input type="text" id="search-equipes" placeholder="Recherche rapide..." class="form-input w-64 rounded border-gray-300 dark:bg-gray-700 dark:text-white" />
-</div>
-<table class="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow mt-4 table-fixed equipes-table">
-    <thead class="bg-gray-100 dark:bg-gray-700">
+<table class="min-w-full bg-bl-card rounded-lg shadow mt-4 table-fixed equipes-table border border-bl-border">
+    <thead class="bg-[#23272a]">
         <tr>
-            <th class="py-2 px-4 w-20 text-center">Logo</th>
-            <th class="py-2 px-4 w-40 text-center">Nom</th>
-            <th class="py-2 px-4 w-32 text-center">Pool</th>
-            <th class="py-2 px-4 w-40 text-center">Coach</th>
+            <th class="py-2 px-4 w-20 text-center text-white">Logo</th>
+            <th class="py-2 px-4 w-40 text-center text-white">Nom</th>
+            <th class="py-2 px-4 w-32 text-center text-white">Pool</th>
+            <th class="py-2 px-4 w-40 text-center text-white">Coach</th>
         </tr>
     </thead>
     <tbody>
         @foreach($equipes as $equipe)
-        <tr class="border-b border-gray-200 dark:border-gray-700 text-center align-middle hover:bg-blue-50 dark:hover:bg-blue-900 transition cursor-pointer" onclick="window.location='{{ route('admin.equipes.show', $equipe) }}'">
-            <td class="py-2 px-4 text-center">
-                <span class="inline-flex items-center justify-center h-10 w-10 rounded-full border border-gray-200 dark:border-gray-700 overflow-hidden bg-white align-middle">
-                    @if($equipe->logo)
-                        <img src="{{ asset('storage/' . $equipe->logo) }}" alt="Logo" class="h-10 w-10 object-cover block" style="object-fit:cover;object-position:center;" onerror="this.style.display='none'; this.parentNode.innerHTML='<span class=\'inline-flex items-center justify-center h-10 w-10 rounded-full bg-[#23272a]\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#e2001a\' viewBox=\'0 0 24 24\' style=\'height:20px;width:20px;\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'#23272a\'/><path d=\'M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z\' fill=\'#e2001a\'/><circle cx=\'12\' cy=\'12\' r=\'3\' fill=\'#fff\'/></svg></span>'">
-                    @else
-                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-[#23272a]">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="#e2001a" viewBox="0 0 24 24" style="height:20px;width:20px;">
-                                <circle cx="12" cy="12" r="10" fill="#23272a"/>
-                                <path d="M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z" fill="#e2001a"/>
-                                <circle cx="12" cy="12" r="3" fill="#fff"/>
-                            </svg>
-                        </span>
+            @php
+                $rowClass = 'border-b border-bl-border text-center align-middle hover:bg-bl-dark transition cursor-pointer';
+                if (is_null($equipe->pool_id)) $rowClass .= ' bg-green-900';
+            @endphp
+            <tr class="{{ $rowClass }}" onclick="window.location='{{ route('admin.equipes.show', $equipe) }}'">
+                <td class="py-2 px-4 text-center">
+                    <span class="inline-flex items-center justify-center h-10 w-10 rounded-full border border-bl-border overflow-hidden bg-bl-card align-middle">
+                        @if($equipe->logo)
+                            <img src="{{ asset('storage/' . $equipe->logo) }}" alt="Logo" class="h-10 w-10 object-cover block" style="object-fit:cover;object-position:center;" onerror="this.style.display='none'; this.parentNode.innerHTML='<span class=\'inline-flex items-center justify-center h-10 w-10 rounded-full bg-[#23272a]\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#e2001a\' viewBox=\'0 0 24 24\' style=\'height:20px;width:20px;\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'#23272a\'/><path d=\'M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z\' fill=\'#e2001a\'/><circle cx=\'12\' cy=\'12\' r=\'3\' fill=\'#fff\'/></svg></span>'">
+                        @else
+                            <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-[#23272a]">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="#e2001a" viewBox="0 0 24 24" style="height:20px;width:20px;">
+                                    <circle cx="12" cy="12" r="10" fill="#23272a"/>
+                                    <path d="M12 4a8 8 0 0 1 8 8c0 2.5-1.5 4.5-4 6.5-2.5-2-4-4-4-6.5a8 8 0 0 1 8-8z" fill="#e2001a"/>
+                                    <circle cx="12" cy="12" r="3" fill="#fff"/>
+                                </svg>
+                            </span>
+                        @endif
+                    </span>
+                </td>
+                <td class="py-2 px-4 font-semibold text-white">
+                    {{ $equipe->nom }}
+                    @if(is_null($equipe->pool_id))
+                        <span class="ml-2 px-2 py-1 rounded text-xs font-bold bg-green-700 text-white align-middle">LIBRE</span>
                     @endif
-                </span>
-            </td>
-            <td class="py-2 px-4 font-semibold">{{ $equipe->nom }}</td>
-            <td class="py-2 px-4">{{ $equipe->pool->nom ?? '-' }}</td>
-            <td class="py-2 px-4">{{ $equipe->coach }}</td>
-        </tr>
+                </td>
+                <td class="py-2 px-4 text-white">
+                    {{ $equipe->pool->nom ?? (is_null($equipe->pool_id) ? 'Libre' : '-') }}
+                </td>
+                <td class="py-2 px-4 text-white">{{ $equipe->coach }}</td>
+            </tr>
         @endforeach
     </tbody>
 </table>
@@ -89,11 +100,6 @@
 
 @section('scripts')
 <script>
-document.getElementById('search-equipes').addEventListener('input', function(e) {
-    const search = e.target.value.toLowerCase();
-    document.querySelectorAll('.equipes-table tbody tr').forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
-    });
-});
+// Suppression du script de recherche rapide
 </script>
 @endsection

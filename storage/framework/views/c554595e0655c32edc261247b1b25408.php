@@ -122,6 +122,11 @@
                     <div>
                         <div class="font-bold text-white text-lg group-hover:text-[#6fcf97]"><?php echo e($joueur->nom); ?> <?php echo e($joueur->prenom); ?></div>
                         <div class="text-gray-400 text-sm"><?php echo e($joueur->poste); ?></div>
+                        <div class="text-xs text-gray-300 mt-1 flex flex-wrap gap-2">
+                            <span><strong>Nationalité :</strong> <?php echo e($joueur->nationalite ?? '-'); ?></span>
+                            <span><strong>Licence :</strong> <?php echo e($joueur->numero_licence ?? '-'); ?></span>
+                            <span><strong>Dossard :</strong> <?php echo e($joueur->numero_dossard ?? '-'); ?></span>
+                        </div>
                     </div>
                 </a>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -194,9 +199,10 @@
 </div>
 <?php $__env->stopSection(); ?>
 
-<?php $__env->startSection('scripts'); ?>
+<?php $__env->startPush('scripts'); ?>
 <script src="/js/chart.umd.min.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 // Carrousel auto-défilant moderne (images + vidéo)
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('[data-carousel]')?.forEach(function(carousel) {
@@ -228,9 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         carousel.addEventListener('mouseleave', () => interval = setInterval(nextSlide, 5000));
     });
 });
-</script>
 <?php if(!empty($rencontres) && !$rencontres->isEmpty()): ?>
-<script>
     const rencontres = <?php echo json_encode($rencontres, 15, 512) ?>;
     const equipeId = <?php echo json_encode($equipe->id, 15, 512) ?>;
     let labels = [];
@@ -277,8 +281,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-</script>
+<?php else: ?>
+    // Affiche un graphique vide pour garder l'harmonie visuelle
+    new Chart(document.getElementById('progressionChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: ['Aucune donnée'],
+            datasets: [{
+                label: 'Points cumulés',
+                data: [0],
+                fill: true,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37,99,235,0.1)',
+                tension: 0.3,
+                pointBackgroundColor: '#2563eb',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            scales: {
+                x: { title: { display: true, text: 'Match' } },
+                y: { title: { display: true, text: 'Points cumulés' }, beginAtZero: true, precision:0 }
+            }
+        }
+    });
 <?php endif; ?>
-<?php $__env->stopSection(); ?>
+});
+</script>
+<?php $__env->stopPush(); ?>
 
 <?php echo $__env->make('layouts.public', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\MIKE KIBWE\Documents\Learning\UDBL\L4 GL\TFC\Application\Euflu\resources\views/public/equipe_show.blade.php ENDPATH**/ ?>

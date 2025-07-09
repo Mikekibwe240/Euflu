@@ -35,6 +35,9 @@
 <?php $component = $__componentOriginal5564dd85bf2706938f671f4ed6c78011; ?>
 <?php unset($__componentOriginal5564dd85bf2706938f671f4ed6c78011); ?>
 <?php endif; ?>
+                <?php if($rencontre->equipe1 && $rencontre->equipe1->coach): ?>
+                    <span class="text-xs text-gray-400 mt-1">Coach : <?php echo e($rencontre->equipe1->coach); ?></span>
+                <?php endif; ?>
             </div>
             <div class="flex flex-col items-center justify-center">
                 <div class="flex items-center gap-2 mb-2">
@@ -68,11 +71,14 @@
 <?php $component = $__componentOriginal5564dd85bf2706938f671f4ed6c78011; ?>
 <?php unset($__componentOriginal5564dd85bf2706938f671f4ed6c78011); ?>
 <?php endif; ?>
+                <?php if($rencontre->equipe2 && $rencontre->equipe2->coach): ?>
+                    <span class="text-xs text-gray-400 mt-1">Coach : <?php echo e($rencontre->equipe2->coach); ?></span>
+                <?php endif; ?>
             </div>
         </div>
         <div class="flex items-center justify-between px-6 pb-2">
             <div></div>
-            <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider"><?php echo e($rencontre->date); ?> à <?php echo e($rencontre->heure); ?></div>
+            <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider"><?php echo e($rencontre->date); ?> à <?php echo e(\Carbon\Carbon::parse($rencontre->heure)->format('H:i')); ?></div>
         </div>
         <div class="bg-[#181d1f] px-6 py-4 rounded-b-xl">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -176,31 +182,41 @@
                         <div class="font-bold text-[#6fcf97] uppercase text-base mb-2">Effectif <?php echo e($equipe->nom); ?></div>
                         <?php if($effectif): ?>
                             <div class="mb-2">
-                                <span class="font-semibold text-white">Titulaires :</span>
+                                <span class="font-semibold text-blue-500">Titulaires :</span>
                                 <ul class="text-white text-sm space-y-1 mt-1">
                                     <?php $__currentLoopData = $effectif->joueurs->where('type', 'titulaire')->sortBy('ordre'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $titulaire): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <li><?php echo e($titulaire->joueur->nom ?? '-'); ?></li>
+                                        <li>
+                                            <span class="inline-block bg-gray-700 text-[#6fcf97] font-bold rounded px-2 py-0.5 mr-2 text-xs align-middle"><?php echo e($titulaire->joueur->numero_dossard ?? '-'); ?></span>
+                                            <?php echo e($titulaire->joueur->nom ?? '-'); ?>
+
+                                        </li>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </ul>
                             </div>
                             <div class="mb-2">
-                                <span class="font-semibold text-white">Remplaçants :</span>
+                                <span class="font-semibold text-yellow-500">Remplaçants :</span>
                                 <ul class="text-white text-sm space-y-1 mt-1">
                                     <?php $__currentLoopData = $effectif->joueurs->where('type', 'remplaçant')->sortBy('ordre'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $remplacant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <li><?php echo e($remplacant->joueur->nom ?? '-'); ?></li>
+                                        <li>
+                                            <span class="inline-block bg-gray-700 text-yellow-400 font-bold rounded px-2 py-0.5 mr-2 text-xs align-middle"><?php echo e($remplacant->joueur->numero_dossard ?? '-'); ?></span>
+                                            <?php echo e($remplacant->joueur->nom ?? '-'); ?>
+
+                                        </li>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </ul>
                             </div>
                             <div>
-                                <span class="font-semibold text-white">Remplacements :</span>
+                                <span class="font-semibold text-green-500">Remplacements :</span>
                                 <ul class="text-white text-sm space-y-1 mt-1">
                                     <?php $__empty_1 = true; $__currentLoopData = $effectif->remplacements; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $remp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <li>
+                                            <span class="inline-block bg-gray-700 text-yellow-400 font-bold rounded px-2 py-0.5 mr-2 text-xs align-middle"><?php echo e($remp->remplaçant->numero_dossard ?? '-'); ?></span>
                                             <span class="font-bold"><?php echo e($remp->remplaçant->nom ?? '-'); ?></span>
                                             <?php if(!is_null($remp->minute)): ?>
                                                 <span class="text-xs text-gray-400"><?php echo e($remp->minute); ?>'</span>
                                             <?php endif; ?>
                                             <span class="text-xs">a remplacé</span>
+                                            <span class="inline-block bg-gray-700 text-blue-400 font-bold rounded px-2 py-0.5 mx-2 text-xs align-middle"><?php echo e($remp->remplacé->numero_dossard ?? '-'); ?></span>
                                             <span class="font-bold"><?php echo e($remp->remplacé->nom ?? '-'); ?></span>
                                         </li>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
@@ -215,6 +231,11 @@
                 <?php endif; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
+    </div>
+    <div class="mt-4 text-xs text-gray-500 text-right">
+        <?php if($rencontre->updated_at): ?>
+            <span>Dernière modification le <?php echo e($rencontre->updated_at->format('d/m/Y à H:i')); ?></span>
+        <?php endif; ?>
     </div>
 </div>
 <?php $__env->stopSection(); ?>

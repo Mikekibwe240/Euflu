@@ -43,47 +43,68 @@ class MatchPublicController extends Controller
                   ->orWhere('equipe2_id', $request->equipe_id);
             });
         }
-        $allJournees = $query->clone()->pluck('journee')->unique()->sort()->values();
-        // UX : si aucune journée n'est précisée, on affiche la journée la plus proche de la date du jour
-        if (!$request->filled('journee') && $allJournees->count() > 0) {
-            $today = now();
-            $closestJournee = null;
-            $closestDiff = null;
-            foreach ($allJournees as $j) {
-                $dateMatch = $query->clone()->where('journee', $j)->orderBy('date')->first();
-                if ($dateMatch) {
-                    $diff = abs($today->diffInSeconds($dateMatch->date, false));
-                    if ($closestDiff === null || $diff < $closestDiff) {
-                        $closestDiff = $diff;
-                        $closestJournee = $j;
+        // --- NOUVELLE LOGIQUE : prioriser les matchs du jour ---
+        $today = now()->startOfDay();
+        $matchesToday = $query->clone()->whereDate('date', $today)->get();
+        if ($matchesToday->count() > 0) {
+            $rencontres = $matchesToday;
+            $currentJournee = $matchesToday->first()->journee ?? null;
+        } else {
+            // Logique existante : journée la plus proche si aucun match aujourd'hui
+            $allJournees = $query->clone()->pluck('journee')->unique()->sort()->values();
+            $explicitFilters = $request->filled('statut') || $request->filled('order');
+            if (!$request->has('journee') && $allJournees->count() > 0 && !$explicitFilters) {
+                $today = now();
+                $closestJournee = null;
+                $closestDiff = null;
+                foreach ($allJournees as $j) {
+                    $dateMatch = $query->clone()->where('journee', $j)->orderBy('date')->first();
+                    if ($dateMatch) {
+                        $diff = abs($today->diffInSeconds($dateMatch->date, false));
+                        if ($closestDiff === null || $diff < $closestDiff) {
+                            $closestDiff = $diff;
+                            $closestJournee = $j;
+                        }
                     }
                 }
+                if ($closestJournee) {
+                    $request->merge(['journee' => $closestJournee]);
+                } else {
+                    $request->merge(['journee' => $allJournees->first()]);
+                }
             }
-            if ($closestJournee) {
-                $request->merge(['journee' => $closestJournee]);
+            if ($request->filled('journee')) {
+                $query->where('journee', $request->journee);
+            }
+            if ($saison) {
+                $query->where('saison_id', $saison->id);
+            }
+            if ($request->filled('type')) {
+                $query->where('type_rencontre', $request->type);
+            }
+            if ($request->filled('statut')) {
+                if ($request->statut === 'joue') {
+                    $query->whereNotNull('score_equipe1')->whereNotNull('score_equipe2');
+                    // Tri dynamique selon le paramètre order
+                    if ($request->input('order') === 'desc') {
+                        $query->orderByDesc('date');
+                    } else {
+                        $query->orderBy('journee')->orderBy('date');
+                    }
+                } elseif ($request->statut === 'non joue') {
+                    $query->where(function($q) {
+                        $q->whereNull('score_equipe1')->orWhereNull('score_equipe2');
+                    });
+                }
+            }
+            // On ne doit pas trier deux fois :
+            if ($request->filled('statut') && $request->statut === 'joue') {
+                $rencontres = $query->get();
             } else {
-                $request->merge(['journee' => $allJournees->first()]);
+                $rencontres = $query->orderBy('date')->get();
             }
+            $currentJournee = $request->input('journee');
         }
-        if ($request->filled('journee')) {
-            $query->where('journee', $request->journee);
-        }
-        if ($saison) {
-            $query->where('saison_id', $saison->id);
-        }
-        if ($request->filled('type')) {
-            $query->where('type_rencontre', $request->type);
-        }
-        if ($request->filled('statut')) {
-            if ($request->statut === 'joue') {
-                $query->whereNotNull('score_equipe1')->whereNotNull('score_equipe2');
-            } elseif ($request->statut === 'non joue') {
-                $query->where(function($q) {
-                    $q->whereNull('score_equipe1')->orWhereNull('score_equipe2');
-                });
-            }
-        }
-        $rencontres = $query->orderBy('date')->get();
         $pools = \App\Models\Pool::all();
         $equipes = \App\Models\Equipe::all();
         $saisons = \App\Models\Saison::orderByDesc('date_debut')->get();
@@ -96,6 +117,10 @@ class MatchPublicController extends Controller
         $buts = $all->flatMap->buts->count();
         $cartons = $all->flatMap->cartons->count();
         $currentJournee = $request->input('journee');
+        // Correction : définir $allJournees si absent
+        if (!isset($allJournees)) {
+            $allJournees = $all->pluck('journee')->unique()->sort()->values();
+        }
         $prevJournee = $allJournees->filter(fn($j) => $j < $currentJournee)->last();
         $nextJournee = $allJournees->filter(fn($j) => $j > $currentJournee)->first();
         return view('public.matchs', compact('rencontres', 'pools', 'equipes', 'saisons', 'total', 'joues', 'avenir', 'buts', 'cartons', 'types', 'statuts', 'saison', 'allJournees', 'prevJournee', 'nextJournee', 'currentJournee'));

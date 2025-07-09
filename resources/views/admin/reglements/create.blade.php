@@ -4,7 +4,7 @@
 <div class="container mx-auto p-4">
     <h2 class="text-2xl font-bold mb-4">Ajouter un règlement</h2>
     @if ($errors->any())
-        <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
+        <div class="bg-red-100 text-white p-3 rounded mb-4">
             <ul class="list-disc pl-5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -12,21 +12,21 @@
             </ul>
         </div>
     @endif
-    <form action="{{ route('admin.reglements.store') }}" method="POST" class="space-y-4 bg-white dark:bg-gray-800 p-6 rounded shadow text-gray-900 dark:text-gray-100">
+    <form action="{{ route('admin.reglements.store') }}" method="POST" class="space-y-4 bg-bl-card border border-bl-border p-6 rounded-xl shadow-lg text-bl-accent" autocomplete="off">
         @csrf
         <div>
-            <label for="titre" class="block font-semibold">Titre</label>
-            <input type="text" name="titre" id="titre" class="form-input w-full bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" value="{{ old('titre') }}" required>
+            <label for="titre" class="block font-semibold mb-1 text-white">Titre</label>
+            <input type="text" name="titre" id="titre" class="form-input w-full bg-bl-dark border-bl-border rounded-lg text-white" value="{{ old('titre') }}" required>
             @error('titre')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
         </div>
         <div>
-            <label for="contenu" class="block font-semibold">Contenu</label>
-            <textarea name="contenu" id="contenu" class="form-input w-full bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" rows="6" required>{{ old('contenu') }}</textarea>
+            <label for="contenu" class="block font-semibold mb-1 text-white">Contenu</label>
+            <textarea name="contenu" id="contenu" class="form-input w-full bg-bl-dark border-bl-border rounded-lg text-white" rows="6" required>{{ old('contenu') }}</textarea>
             @error('contenu')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
         </div>
-        <div class="flex gap-4 items-center">
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Enregistrer</button>
-            <a href="{{ route('admin.reglements.index') }}" class="ml-4 text-gray-600 hover:underline">Annuler</a>
+        <div class="flex gap-4 items-center mt-6">
+            <button type="submit" class="bg-bl-accent hover:bg-bl-accent/90 text-white font-semibold px-6 py-2 rounded-lg shadow transition">Enregistrer</button>
+            <a href="{{ route('admin.reglements.index') }}" class="ml-4 text-bl-accent hover:underline">Annuler</a>
         </div>
     </form>
 </div>

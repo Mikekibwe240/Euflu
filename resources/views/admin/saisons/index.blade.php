@@ -7,9 +7,9 @@
 @endsection
 
 @section('content')
-<button onclick="window.history.back()" class="mb-4 inline-block bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 transition">← Retour</button>
+<a href="{{ route('admin.dashboard') }}" class="mb-4 inline-block bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 border border-yellow-500 transition">← Retour</a>
 <div class="mb-6">
-    <a href="{{ route('admin.saisons.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Nouvelle saison</a>
+    <a href="{{ route('admin.saisons.create') }}" class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 border border-green-700 transition">Nouvelle saison</a>
 </div>
 
 @if(session('success'))
@@ -22,26 +22,29 @@
     <x-alert type="error" :message="$errors->first()" />
 @endif
 
-<table class="min-w-full bg-white dark:bg-gray-800 rounded shadow table-fixed">
+<table class="min-w-full bg-bl-card rounded shadow table-fixed border border-bl-border">
     <thead>
         <tr>
-            <th class="px-4 py-2 w-40 text-center">Nom</th>
-            <th class="px-4 py-2 w-32 text-center">Début</th>
-            <th class="px-4 py-2 w-32 text-center">Fin</th>
-            <th class="px-4 py-2 w-20 text-center">Active</th>
+            <th class="px-4 py-2 w-40 text-center text-white">Nom</th>
+            <th class="px-4 py-2 w-32 text-center text-white">Début</th>
+            <th class="px-4 py-2 w-32 text-center text-white">Fin</th>
+            <th class="px-4 py-2 w-20 text-center text-white">Active</th>
         </tr>
     </thead>
     <tbody>
         @foreach($saisons as $saison)
-        <tr class="border-b border-gray-200 dark:border-gray-700 text-center align-middle hover:bg-blue-50 dark:hover:bg-blue-900 transition cursor-pointer" onclick="window.location='{{ route('admin.saisons.show', $saison) }}'">
-            <td class="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 underline">{{ $saison->nom }}</td>
-            <td class="px-4 py-2">{{ $saison->date_debut }}</td>
-            <td class="px-4 py-2">{{ $saison->date_fin }}</td>
+        @php
+            $rowClass = 'border-b border-bl-border text-center align-middle hover:bg-bl-dark transition cursor-pointer';
+        @endphp
+        <tr class="{{ $rowClass }}" onclick="window.location='{{ route('admin.saisons.show', $saison) }}'">
+            <td class="px-4 py-2 font-semibold text-bl-accent underline">{{ $saison->nom }}</td>
+            <td class="px-4 py-2 text-white">{{ $saison->date_debut }}</td>
+            <td class="px-4 py-2 text-white">{{ $saison->date_fin }}</td>
             <td class="px-4 py-2">
                 @if($saison->active)
-                    <span class="text-green-600 font-bold">Oui</span>
+                    <span class="text-green-500 font-bold">Oui</span>
                 @else
-                    <span class="text-gray-500">Non</span>
+                    <span class="text-bl-gray">Non</span>
                 @endif
             </td>
         </tr>

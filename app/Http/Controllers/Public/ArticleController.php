@@ -12,14 +12,13 @@ class ArticleController extends Controller
     {
         $saisons = Saison::orderByDesc('date_debut')->get();
         $saison = null;
-        if ($request->filled('saison_id')) {
-            $saison = Saison::find($request->saison_id);
-        } else {
-            $saison = Saison::where('active', 1)->first();
-        }
         $query = Article::with(['saison', 'user', 'images']);
-        if ($saison) {
-            $query->where('saison_id', $saison->id);
+        // Si "saison_id" est fourni et différent de "all", filtrer sur la saison choisie. Sinon, ne pas filtrer (toutes saisons).
+        if ($request->filled('saison_id') && $request->saison_id !== 'all' && $request->saison_id !== '') {
+            $saison = Saison::find($request->saison_id);
+            if ($saison) {
+                $query->where('saison_id', $saison->id);
+            }
         }
         if ($request->filled('type')) {
             $query->where('type', $request->type);

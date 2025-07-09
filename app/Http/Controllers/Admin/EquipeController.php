@@ -23,9 +23,15 @@ class EquipeController extends Controller
         $pools = $saison ? Pool::where('saison_id', $saison->id)->get() : collect();
         $saisons = Saison::orderByDesc('date_debut')->get();
         $query = Equipe::with('pool');
+        // Recherche par nom : inclure toutes les équipes (libres ou non), filtrées par nom
         if ($request->filled('nom')) {
-            $query->where('nom', 'like', '%' . $request->nom . '%');
+            $nom = trim($request->nom);
+            $query->where(function($q) use ($nom) {
+                $q->where('nom', 'like', "%$nom%")
+                  ->orWhereNull('pool_id'); // Toujours inclure les libres dans la recherche rapide
+            });
         }
+        // Filtre pool_id : si explicitement demandé, filtrer
         if ($request->filled('pool_id')) {
             if ($request->pool_id === 'libre') {
                 $query->whereNull('pool_id');
@@ -76,7 +82,10 @@ class EquipeController extends Controller
             'logo.max' => 'Le logo ne doit pas dépasser 2 Mo.',
         ];
         $request->validate([
-            'nom' => 'required|unique:equipes,nom,NULL,id,saison_id,' . $saison?->id,
+            'nom' => [
+                'required',
+                'unique:equipes,nom,NULL,id,saison_id,' . $saison?->id . ',deleted_at,NULL',
+            ],
             'pool_id' => 'nullable|exists:pools,id',
             'coach' => 'required|min:2',
             'logo' => 'nullable|image|max:2048',
@@ -138,8 +147,8 @@ class EquipeController extends Controller
             'logo.max' => 'Le logo ne doit pas dépasser 2 Mo.',
         ];
         $request->validate([
-            'nom' => 'required|unique:equipes,nom,' . $equipe->id . ',id,saison_id,' . $saison?->id,
-            'pool_id' => 'required|exists:pools,id',
+            'nom' => 'required|unique:equipes,nom,' . $equipe->id . ',id,saison_id,' . $saison?->id . ',deleted_at,NULL',
+            'pool_id' => 'nullable|exists:pools,id',
             'coach' => 'required|min:2',
             'logo' => 'nullable|image|max:2048',
         ], $messages);
@@ -153,8 +162,15 @@ class EquipeController extends Controller
             'coach' => $request->coach,
             'logo' => $logoPath,
         ]);
+        
+        $ancienPoolId = $equipe->getOriginal('pool_id');
+        $nouveauPoolId = $request->pool_id;
+        $message = (!is_null($ancienPoolId) && is_null($nouveauPoolId))
+            ? 'L’équipe a bien été retirée du pool.'
+            : 'Équipe modifiée avec succès !';
+        
         \Log::info('Modification d\'une équipe', ['equipe_id' => $equipe->id, 'admin_id' => auth()->id()]);
-        return redirect()->route('admin.equipes.index')->with('success', 'Équipe modifiée avec succès !');
+        return redirect()->route('admin.equipes.show', $equipe)->with('success', $message);
     }
 
     /**
@@ -221,5 +237,55 @@ class EquipeController extends Controller
         $joueur->save();
         \Log::info('Affectation rapide d\'un joueur libre à une équipe', ['joueur_id' => $joueur->id, 'equipe_id' => $equipe->id, 'admin_id' => auth()->id()]);
         return redirect()->route('admin.equipes.show', $equipe)->with('success', 'Joueur ajouté à l\'équipe avec succès.');
+    }
+
+    /**
+     * Affecter une équipe à un pool (action dédiée)
+     */
+    public function affecterPool(Request $request, Equipe $equipe)
+    {
+        $request->validate([
+            'pool_id' => 'required|exists:pools,id',
+        ]);
+        $equipe->pool_id = $request->pool_id;
+        $equipe->save();
+        return redirect()->route('admin.equipes.show', $equipe)->with('success', 'Équipe affectée au pool avec succès !');
+    }
+
+    /**
+     * Retirer une équipe de son pool (action dédiée)
+     */
+    public function retirerPool(Request $request, Equipe $equipe)
+    {
+        $equipe->pool_id = null;
+        $equipe->save();
+        return redirect()->route('admin.equipes.show', $equipe)->with('success', 'Équipe retirée du pool avec succès !');
+    }
+
+    /**
+     * Recherche rapide AJAX sur toutes les équipes (admin)
+     */
+    public function ajaxSearch(Request $request)
+    {
+        $q = trim($request->input('q'));
+        $saison = SaisonHelper::getActiveSaison($request);
+        $query = Equipe::with('pool');
+        if ($q !== '') {
+            if (strtolower($q) === 'libre') {
+                $query->whereNull('pool_id');
+            } else {
+                $query->where(function($sub) use ($q) {
+                    $sub->where('nom', 'like', "%$q%")
+                         ->orWhereHas('pool', function($p) use ($q) {
+                             $p->where('nom', 'like', "%$q%") ;
+                         });
+                });
+            }
+        }
+        if ($saison) {
+            $query->where('saison_id', $saison->id);
+        }
+        $equipes = $query->orderBy('nom')->get();
+        return view('admin.equipes.partials.search_results', compact('equipes'))->render();
     }
 }

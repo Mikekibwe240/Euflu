@@ -1,0 +1,3 @@
+Suppression de la vue non utilisée : equipe_show.blade.php
+Suppression de la vue non utilisée : equipes_search.blade.php
+Suppression de la vue non utilisée : equipes_search_results.blade.php

@@ -14,6 +14,14 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                bundesliga: ['Montserrat', 'Figtree', ...defaultTheme.fontFamily.sans],
+            },
+            colors: {
+                'bl-dark': '#191e24',
+                'bl-card': '#23272a',
+                'bl-accent': '#e2001a', // Harmonisé avec le logo/header
+                'bl-gray': '#c9cccf',
+                'bl-border': '#31363a',
             },
         },
     },

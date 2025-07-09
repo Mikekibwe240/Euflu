@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $__env->yieldContent('title', 'EUFLU'); ?></title>
-    <!-- Police Bundesliga (Open Sans) -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Police Bundesliga (Montserrat) -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    <?php echo app('Illuminate\Foundation\Vite')('resources/css/app.css'); ?>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
         html, body {
             background: #18181b !important;
-            font-family: 'Open Sans', Arial, Helvetica, sans-serif !important;
+            font-family: 'Montserrat', Arial, Helvetica, sans-serif !important;
             color: #fff !important;
         }
         body {
@@ -90,6 +90,7 @@
             <a href="/buteurs" class="px-2 py-1">Buteurs</a>
             <a href="/articles" class="px-2 py-1">Actualités</a>
             <a href="/reglements" class="px-2 py-1">Reglements</a>
+            <a href="/a-propos" class="px-2 py-1">À propos</a>
         </div>
         <div class="md:hidden flex items-center">
             <button id="nav-toggle" class="text-white focus:outline-none">
@@ -107,6 +108,7 @@
             <a href="/buteurs" class="px-2 py-2 text-white font-bold text-lg" onclick="document.getElementById('nav-menu').classList.add('hidden')">Buteurs</a>
             <a href="/articles" class="px-2 py-2 text-white font-bold text-lg" onclick="document.getElementById('nav-menu').classList.add('hidden')">Actualités</a>
             <a href="/reglements" class="px-2 py-2 text-white font-bold text-lg" onclick="document.getElementById('nav-menu').classList.add('hidden')">Reglements</a>
+            <a href="/a-propos" class="px-2 py-2 text-white font-bold text-lg" onclick="document.getElementById('nav-menu').classList.add('hidden')">À propos</a>
         </div>
     </div>
     <script>

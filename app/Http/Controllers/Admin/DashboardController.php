@@ -18,15 +18,20 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $saisonsActives = Saison::where('active', 1)->count();
-        $equipes = Equipe::count();
-        $joueurs = Joueur::count();
+        $saison = Saison::where('active', 1)->first();
+        $saisonsActives = $saison ? 1 : 0;
+        $equipes = $saison ? Equipe::where('saison_id', $saison->id)->count() : 0;
+        $joueurs = $saison ? Joueur::where('saison_id', $saison->id)->count() : 0;
         $users = User::count();
-        $articles = Article::count();
-        $matchs = Rencontre::count();
-        $buts = But::count();
-        $cartons = Carton::count();
-        $poules = Pool::with(['equipes', 'equipes.statsSaison'])->get();
+        $articles = $saison ? Article::where('saison_id', $saison->id)->count() : 0;
+        $matchs = $saison ? Rencontre::where('saison_id', $saison->id)->count() : 0;
+        $buts = $saison ? But::whereHas('rencontre', function($q) use ($saison) {
+            $q->where('saison_id', $saison->id);
+        })->count() : 0;
+        $cartons = $saison ? Carton::whereHas('rencontre', function($q) use ($saison) {
+            $q->where('saison_id', $saison->id);
+        })->count() : 0;
+        $poules = $saison ? Pool::with(['equipes', 'equipes.statsSaison'])->where('saison_id', $saison->id)->get() : collect();
         // Pour chaque poule, on prépare le classement comme dans la page publique
         foreach ($poules as $poule) {
             $classement = $poule->equipes->map(function($eq) {

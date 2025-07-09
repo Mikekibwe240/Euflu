@@ -23,7 +23,7 @@ class EquipeController extends Controller
         if ($request->filled('pool_id')) {
             if ($request->pool_id === 'libre') {
                 $query->whereNull('pool_id');
-            } else {
+            } elseif ($request->pool_id) {
                 $query->where('pool_id', $request->pool_id);
             }
         }

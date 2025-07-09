@@ -65,7 +65,7 @@ class RencontreController extends Controller
 
     public function create()
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = Saison::where('active', 1)->orderByDesc('date_debut')->first();
         $pools = $saison ? Pool::where('saison_id', $saison->id)->get() : collect();
         $equipes = $saison ? Equipe::where('saison_id', $saison->id)->get() : collect();
         $journees = collect();
@@ -83,7 +83,7 @@ class RencontreController extends Controller
 
     public function store(Request $request)
     {
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = Saison::where('active', 1)->orderByDesc('date_debut')->first();
         // Validation personnalisée selon le contexte
         $rules = [
             'date' => 'required|date',
@@ -105,22 +105,23 @@ class RencontreController extends Controller
             'logo_equipe2_libre.image' => 'Le logo de l\'équipe 2 doit être une image.',
             'logo_equipe1_libre.max' => 'Le logo de l\'équipe 1 ne doit pas dépasser 2 Mo.',
             'logo_equipe2_libre.max' => 'Le logo de l\'équipe 2 ne doit pas dépasser 2 Mo.',
-            'type_rencontre.required' => 'Le type de rencontre est obligatoire pour les matchs hors calendrier.',
         ];
+        if (!$request->has('hors_calendrier')) {
+            $rules['pool_id'] = 'required|exists:pools,id';
+            $rules['journee'] = 'required|integer';
+        }
         if ($request->has('hors_calendrier')) {
-            $rules['type_rencontre'] = 'required|in:amical,externe';
-            // Pas de pool ni de journée requis
-        } else {
-            if ($request->equipe1_mode === 'select' && $request->equipe2_mode === 'select') {
-                $rules['equipe1_id'] = 'required|exists:equipes,id|different:equipe2_id';
-                $rules['equipe2_id'] = 'required|exists:equipes,id|different:equipe1_id';
-                $rules['pool_id'] = 'required|exists:pools,id';
-                $messages['pool_id.required'] = 'Veuillez sélectionner un pool (obligatoire si les deux équipes sont du championnat).';
-            }
+            // Forcer le type à 'amical' si hors calendrier
+            $request->merge(['type_rencontre' => 'amical']);
         }
         $request->validate($rules, $messages);
         $data = $request->only(['pool_id', 'equipe1_id', 'equipe2_id', 'date', 'heure', 'stade', 'journee', 'type_rencontre']);
         $data['saison_id'] = $saison?->id;
+        if ($request->has('hors_calendrier')) {
+            $data['type_rencontre'] = 'amical';
+            $data['pool_id'] = null;
+            $data['journee'] = null;
+        }
         // Gestion équipe 1
         if ($request->equipe1_mode === 'libre') {
             $data['equipe1_libre'] = $request->equipe1_libre;
@@ -163,7 +164,7 @@ class RencontreController extends Controller
     public function edit($id)
     {
         $rencontre = Rencontre::findOrFail($id);
-        $saison = Saison::where('etat', 'ouverte')->orderByDesc('date_debut')->first();
+        $saison = $rencontre->saison_id ? Saison::find($rencontre->saison_id) : Saison::where('active', 1)->orderByDesc('date_debut')->first();
         $pools = $saison ? Pool::where('saison_id', $saison->id)->get() : collect();
         $equipes = $saison ? Equipe::where('saison_id', $saison->id)->get() : collect();
         return view('admin.rencontres.edit', compact('rencontre', 'pools', 'equipes', 'saison'));
@@ -658,6 +659,9 @@ class RencontreController extends Controller
         $rencontre = Rencontre::findOrFail($id);
         $rencontre->score_equipe1 = null;
         $rencontre->score_equipe2 = null;
+        $rencontre->mvp_id = null;
+        $rencontre->mvp_libre = null;
+        $rencontre->mvp_libre_equipe = null;
         $rencontre->buts()->delete();
         $rencontre->cartons()->delete();
         $rencontre->save();
@@ -710,7 +714,7 @@ class RencontreController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Rencontre::with(['equipe1', 'equipe2', 'pool', 'mvp']);
+        $query = Rencontre::with(['equipe1', 'equipe2', 'pool', 'mvp', 'matchEffectifs.joueurs.joueur']);
         if ($request->filled('pool_id')) {
             $query->where('pool_id', $request->pool_id);
         }

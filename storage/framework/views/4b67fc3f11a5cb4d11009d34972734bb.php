@@ -2,13 +2,14 @@
 
 <?php $__env->startSection('content'); ?>
 <div class="container mx-auto p-4">
-    <h2 class="text-2xl font-bold mb-4">Liste des rencontres <?php if($saison): ?> (Saison <?php echo e($saison->annee ?? ''); ?>) <?php endif; ?></h2>
+    <h2 class="text-2xl font-extrabold mb-6 text-white tracking-wide">Liste des rencontres</h2>
     <div class="flex flex-wrap gap-4 mb-4">
-        <a href="<?php echo e(route('admin.rencontres.create')); ?>" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Ajouter une rencontre</a>
-        <a href="/admin/matchs/generer" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Générer calendrier</a>
-        <a href="<?php echo e(route('admin.rencontres.export', request()->all())); ?>" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition">Exporter Excel</a>
-        <a href="<?php echo e(route('admin.rencontres.exportPdf', request()->all())); ?>" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Exporter PDF</a>
+        <a href="<?php echo e(route('admin.rencontres.create')); ?>" class="bg-green-700 text-white px-4 py-2 rounded-lg shadow hover:bg-green-800 border border-green-700 transition">Ajouter une rencontre</a>
+        <a href="/admin/matchs/generer" class="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 border border-yellow-500 transition">Générer calendrier</a>
+        <a href="<?php echo e(route('admin.rencontres.export', request()->all())); ?>" class="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 border border-yellow-500 transition">Exporter Excel</a>
+        <a href="<?php echo e(route('admin.rencontres.exportPdf', request()->all())); ?>" class="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 border border-yellow-500 transition">Exporter PDF</a>
     </div>
+    <button onclick="window.history.back()" class="mb-4 inline-block bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 border border-yellow-500 transition">← Retour</button>
     <?php if(session('success')): ?>
         <?php if (isset($component)) { $__componentOriginal5194778a3a7b899dcee5619d0610f5cf = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal5194778a3a7b899dcee5619d0610f5cf = $attributes; } ?>
@@ -76,10 +77,10 @@
 <?php endif; ?>
     <?php endif; ?>
 
-    <form method="GET" action="<?php echo e(route('admin.rencontres.index')); ?>" class="mb-4 flex flex-wrap gap-4 items-end bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+    <form method="GET" action="<?php echo e(route('admin.rencontres.index')); ?>" class="mb-4 flex flex-wrap gap-4 items-end bg-bl-card p-4 rounded-lg shadow border border-bl-border">
         <div>
-            <label class="block font-semibold text-gray-700 dark:text-gray-200">Pool</label>
-            <select name="pool_id" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
+            <label class="block font-semibold text-gray-200">Pool</label>
+            <select name="pool_id" class="form-select w-40 rounded border-bl-border bg-gray-800 text-white">
                 <option value="">Tous</option>
                 <?php if(isset($pools)): ?>
                     <?php $__currentLoopData = $pools; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pool): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -89,8 +90,8 @@
             </select>
         </div>
         <div>
-            <label class="block font-semibold text-gray-700 dark:text-gray-200">Équipe</label>
-            <select name="equipe_id" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
+            <label class="block font-semibold text-gray-200">Équipe</label>
+            <select name="equipe_id" class="form-select w-40 rounded border-bl-border bg-gray-800 text-white">
                 <option value="">Toutes</option>
                 <?php if(isset($equipes)): ?>
                     <?php $__currentLoopData = $equipes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $equipe): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -100,8 +101,8 @@
             </select>
         </div>
         <div>
-            <label class="block font-semibold text-gray-700 dark:text-gray-200">Saison</label>
-            <select name="saison_id" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
+            <label class="block font-semibold text-gray-200">Saison</label>
+            <select name="saison_id" class="form-select w-40 rounded border-bl-border bg-gray-800 text-white">
                 <option value="">Actuelle</option>
                 <?php if(isset($saisons)): ?>
                     <?php $__currentLoopData = $saisons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -111,12 +112,12 @@
             </select>
         </div>
         <div>
-            <label class="block font-semibold text-gray-700 dark:text-gray-200">Journée</label>
-            <input type="number" name="journee" value="<?php echo e(request('journee')); ?>" class="form-input w-24 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
+            <label class="block font-semibold text-gray-200">Journée</label>
+            <input type="number" name="journee" value="<?php echo e(request('journee')); ?>" class="form-input w-24 rounded border-bl-border bg-gray-800 text-white">
         </div>
         <div>
-            <label class="block font-semibold text-gray-700 dark:text-gray-200">Type de rencontre</label>
-            <select name="type_rencontre" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
+            <label class="block font-semibold text-gray-200">Type de rencontre</label>
+            <select name="type_rencontre" class="form-select w-40 rounded border-bl-border bg-gray-800 text-white">
                 <option value="">Tous</option>
                 <option value="championnat" <?php echo e(request('type_rencontre') == 'championnat' ? 'selected' : ''); ?>>Championnat</option>
                 <option value="amical" <?php echo e(request('type_rencontre') == 'amical' ? 'selected' : ''); ?>>Amical</option>
@@ -124,8 +125,8 @@
             </select>
         </div>
         <div>
-            <label class="block font-semibold text-gray-700 dark:text-gray-200">État du match</label>
-            <select name="etat_match" class="form-select w-40 rounded border-gray-300 dark:bg-gray-700 dark:text-white">
+            <label class="block font-semibold text-gray-200">État du match</label>
+            <select name="etat_match" class="form-select w-40 rounded border-bl-border bg-gray-800 text-white">
                 <option value="">Tous</option>
                 <option value="joue" <?php echo e(request('etat_match') == 'joue' ? 'selected' : ''); ?>>Match joué</option>
                 <option value="non_joue" <?php echo e(request('etat_match') == 'non_joue' ? 'selected' : ''); ?>>Match non joué</option>
@@ -133,10 +134,6 @@
         </div>
         <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-900 transition">Rechercher</button>
     </form>
-
-    <div class="mb-4 flex flex-wrap gap-4 items-end">
-        <input type="text" id="search-rencontres" placeholder="Recherche rapide..." class="form-input w-64 rounded border-gray-300 dark:bg-gray-700 dark:text-white" />
-    </div>
 
     <?php
         // Regrouper les rencontres par journée
@@ -147,25 +144,25 @@
         <?php
             $titreJournee = $journee ? "Journée $journee" : 'Hors journées / Autres rencontres';
         ?>
-        <h3 class="text-lg font-semibold mt-6 mb-2"><?php echo e($titreJournee); ?></h3>
+        <h3 class="text-lg font-semibold mt-6 mb-2 text-white"><?php echo e($titreJournee); ?></h3>
         <div class="overflow-x-auto mb-8">
-            <table class="min-w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded shadow table-fixed rencontres-table">
-                <thead>
+            <table class="min-w-full bg-bl-card text-white rounded shadow table-fixed rencontres-table border border-bl-border">
+                <thead class="bg-[#23272a]">
                     <tr>
-                        <th class="px-4 py-2 w-24 text-center">Date</th>
-                        <th class="px-4 py-2 w-20 text-center">Heure</th>
-                        <th class="px-4 py-2 w-28 text-center">Pool</th>
-                        <th class="px-4 py-2 w-40 text-center">Équipe 1</th>
-                        <th class="px-2 py-2 w-10 text-center">vs</th>
-                        <th class="px-4 py-2 w-40 text-center">Équipe 2</th>
-                        <th class="px-4 py-2 w-32 text-center">Stade</th>
-                        <th class="px-4 py-2 w-20 text-center">Score</th>
-                        <th class="px-4 py-2 w-32 text-center">MVP</th>
+                        <th class="px-4 py-2 w-24 text-center text-white">Date</th>
+                        <th class="px-4 py-2 w-20 text-center text-white">Heure</th>
+                        <th class="px-4 py-2 w-28 text-center text-white">Pool</th>
+                        <th class="px-4 py-2 w-40 text-center text-white">Équipe 1</th>
+                        <th class="px-2 py-2 w-10 text-center text-white">vs</th>
+                        <th class="px-4 py-2 w-40 text-center text-white">Équipe 2</th>
+                        <th class="px-4 py-2 w-32 text-center text-white">Stade</th>
+                        <th class="px-4 py-2 w-20 text-center text-white">Score</th>
+                        <th class="px-4 py-2 w-32 text-center text-white">MVP</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php $__currentLoopData = $liste; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rencontre): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <tr class="border-t text-center align-middle hover:bg-blue-50 dark:hover:bg-blue-900 cursor-pointer" onclick="window.location='<?php echo e(route('admin.rencontres.show', $rencontre)); ?>'">
+                        <tr class="border-t border-bl-border text-center align-middle hover:bg-bl-dark transition cursor-pointer" onclick="window.location='<?php echo e(route('admin.rencontres.show', $rencontre)); ?>'">
                             <td class="px-4 py-2"><?php echo e($rencontre->date); ?></td>
                             <td class="px-4 py-2"><?php echo e($rencontre->heure); ?></td>
                             <td class="px-4 py-2"><?php echo e($rencontre->pool->nom ?? '-'); ?></td>
@@ -318,7 +315,7 @@
                             </td>
                             <td class="px-4 py-2">
                                 <?php if($rencontre->mvp_libre): ?>
-                                    <span class="italic text-blue-600 dark:text-blue-300"><?php echo e($rencontre->mvp_libre); ?></span>
+                                    <span class="italic text-blue-400"><?php echo e($rencontre->mvp_libre); ?></span>
                                 <?php elseif($rencontre->mvp): ?>
                                     <?php echo e($rencontre->mvp->nom); ?> <?php echo e($rencontre->mvp->prenom); ?>
 
@@ -337,7 +334,6 @@
         <?php echo e($rencontres->links()); ?>
 
     </div>
-    <button onclick="window.history.back()" class="mb-4 inline-block bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 transition">← Retour</button>
 </div>
 <?php $__env->stopSection(); ?>
 

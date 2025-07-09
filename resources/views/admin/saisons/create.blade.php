@@ -7,10 +7,10 @@
 @endsection
 
 @section('content')
-<div class="max-w-lg mx-auto bg-white dark:bg-gray-800 rounded shadow p-6">
-    <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Créer une nouvelle saison</h2>
+<div class="max-w-lg mx-auto bg-bl-card border border-bl-border rounded-xl shadow-lg p-8 mt-8">
+    <h2 class="text-2xl font-extrabold mb-6 text-white tracking-wide">Créer une nouvelle saison</h2>
     @if ($errors->any())
-        <div class="bg-red-100 text-red-800 p-2 mb-4 rounded">
+        <div class="bg-red-900/80 text-white border border-red-700 p-3 mb-6 rounded">
             <ul class="list-disc pl-5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -18,22 +18,24 @@
             </ul>
         </div>
     @endif
-    <form action="{{ route('admin.saisons.store') }}" method="POST">
+    <form action="{{ route('admin.saisons.store') }}" method="POST" class="space-y-6">
         @csrf
-        <div class="mb-4">
-            <label for="nom" class="block text-gray-900 dark:text-gray-100 font-semibold">Nom de la saison</label>
-            <input type="text" name="nom" id="nom" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700" value="{{ old('nom') }}" required>
+        <div>
+            <label for="nom" class="block text-white font-semibold mb-1">Nom de la saison</label>
+            <input type="text" name="nom" id="nom" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" value="{{ old('nom') }}" required>
         </div>
-        <div class="mb-4">
-            <label for="date_debut" class="block text-gray-900 dark:text-gray-100 font-semibold">Date de début</label>
-            <input type="date" name="date_debut" id="date_debut" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700" value="{{ old('date_debut') }}" required>
+        <div>
+            <label for="date_debut" class="block text-white font-semibold mb-1">Date de début</label>
+            <input type="date" name="date_debut" id="date_debut" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" value="{{ old('date_debut') }}" required>
         </div>
-        <div class="mb-4">
-            <label for="date_fin" class="block text-gray-900 dark:text-gray-100 font-semibold">Date de fin</label>
-            <input type="date" name="date_fin" id="date_fin" class="w-full mt-1 p-2 border rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700" value="{{ old('date_fin') }}" required>
+        <div>
+            <label for="date_fin" class="block text-white font-semibold mb-1">Date de fin</label>
+            <input type="date" name="date_fin" id="date_fin" class="w-full mt-1 p-3 border border-bl-border rounded bg-bl-dark text-white focus:ring-2 focus:ring-bl-accent focus:border-bl-accent transition" value="{{ old('date_fin') }}" required>
         </div>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Créer</button>
-        <a href="{{ route('admin.saisons.index') }}" class="ml-2 text-gray-600 dark:text-gray-300 hover:underline">Annuler</a>
+        <div class="flex items-center gap-4 mt-6">
+            <button type="submit" class="bg-bl-accent hover:bg-bl-dark text-white font-bold px-6 py-2 rounded shadow border border-bl-accent transition">Créer</button>
+            <a href="{{ route('admin.saisons.index') }}" class="text-gray-400 hover:text-bl-accent underline transition">Annuler</a>
+        </div>
     </form>
 </div>
 @endsection

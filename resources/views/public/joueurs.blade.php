@@ -18,15 +18,25 @@
                 <option value="{{ $equipe->id }}" {{ request('equipe_id') == $equipe->id ? 'selected' : '' }}>{{ $equipe->nom }}</option>
             @endforeach
         </select>
-        <input type="text" name="nom" value="{{ request('nom') }}" placeholder="Nom, prénom..." class="px-3 md:px-4 py-2 rounded border-2 border-[#e2001a] focus:outline-none focus:ring-2 focus:ring-[#e2001a] min-w-[120px] md:min-w-[180px] text-sm md:text-base" />
+        <input type="text" name="nom" value="{{ request('nom') }}" placeholder="Nom, prénom..." class="px-3 md:px-4 py-2 rounded border-2 border-[#e2001a] focus:outline-none focus:ring-2 focus:ring-[#e2001a] min-w-[120px] md:min-w-[180px] text-sm md:text-base bg-white text-black placeholder-gray-500" />
         <button type="submit" class="px-4 md:px-5 py-2 bg-gradient-to-r from-[#e2001a] to-[#b80016] text-white font-extrabold rounded shadow-lg hover:from-[#b80016] hover:to-[#e2001a] focus:outline-none focus:ring-2 focus:ring-[#e2001a] transition text-sm md:text-base">Rechercher</button>
     </form>
     @php
         $totalJoueurs = $groupedJoueurs->flatten(2)->count();
     @endphp
     @if($totalJoueurs === 0)
+        @php
+            $activeFilters = collect([
+                request('saison_id') && request('saison_id') !== 'all' ? 'Saison' : null,
+                request('equipe_id') ? (request('equipe_id') === 'libre' ? 'Libres' : 'Équipe') : null,
+                request('nom') ? 'Nom' : null,
+            ])->filter()->implode(', ');
+        @endphp
         <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
             Aucun joueur n'a été trouvé pour votre recherche.
+            @if($activeFilters)
+                <br><span class="font-semibold">Filtres actifs :</span> {{ $activeFilters }}
+            @endif
         </div>
     @endif
     @if(isset($clubSelected) && $clubSelected)

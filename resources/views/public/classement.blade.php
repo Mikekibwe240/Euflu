@@ -1,5 +1,5 @@
 @extends('layouts.public')
-@section('title', 'Classement Bundesliga Style')
+@section('title', 'Classement EUFLU')
 @section('content')
 <div class="max-w-6xl mx-auto mt-10 mb-8">
     @php
