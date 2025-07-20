@@ -54,6 +54,53 @@
                     <span class="text-[#e2001a] font-extrabold text-lg uppercase tracking-wider">Classement</span>
                     <span class="text-gray-400 font-bold uppercase text-xs">{{ $pool->nom }}</span>
                 </div>
+                @php
+                    $classement = $pool->equipes->map(function($eq) use ($selectedSaison) {
+                        $stats = $eq->statsSaison($selectedSaison->id)->first();
+                        return (object) [
+                            'equipe' => $eq,
+                            'mj' => ($stats?->victoires ?? 0) + ($stats?->nuls ?? 0) + ($stats?->defaites ?? 0),
+                            'mg' => $stats?->victoires ?? 0,
+                            'mp' => $stats?->defaites ?? 0,
+                            'mn' => $stats?->nuls ?? 0,
+                            'bp' => $stats?->buts_pour ?? 0,
+                            'bc' => $stats?->buts_contre ?? 0,
+                            'gd' => ($stats?->buts_pour ?? 0) - ($stats?->buts_contre ?? 0),
+                            'points' => $stats?->points ?? 0,
+                        ];
+                    })->sortByDesc('points')->sortByDesc('gd')->sortByDesc('bp')->values();
+                    $totalButs = $classement->sum('bp');
+                    $totalMatchs = $classement->sum('mj');
+                    $ratioButsMatch = $totalMatchs ? number_format($totalButs / $totalMatchs, 2) : '-';
+                    $qualifiesCount = $classement->count() >= 2 ? 2 : $classement->count();
+                    $releguesCount = $classement->count() >= 3 ? 3 : $classement->count();
+                @endphp
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <div class="bg-green-900 text-green-400 px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-green-700">
+                        <span class="font-bold text-lg">{{ $qualifiesCount }}</span>
+                        <span class="text-xs font-semibold">Qualifiés</span>
+                    </div>
+                    <div class="bg-red-900 text-white px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-red-700">
+                        <span class="font-bold text-lg">{{ $releguesCount }}</span>
+                        <span class="text-xs font-semibold">Relégués</span>
+                    </div>
+                    <div class="bg-bl-card text-white px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-bl-border">
+                        <span class="font-bold text-lg">{{ $classement->count() }}</span>
+                        <span class="text-xs font-semibold">Équipes</span>
+                    </div>
+                    <div class="bg-bl-card border border-bl-border rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
+                        <span class="font-bold text-lg text-white">Total buts</span>
+                        <span class="text-xl font-bold">{{ $totalButs }}</span>
+                    </div>
+                    <div class="bg-bl-card border border-bl-border rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
+                        <span class="font-bold text-lg text-green-400">Total matchs</span>
+                        <span class="text-xl font-bold">{{ $totalMatchs }}</span>
+                    </div>
+                    <div class="bg-bl-card border border-bl-border rounded-lg px-4 py-2 flex flex-col items-center min-w-[120px]">
+                        <span class="font-bold text-lg text-yellow-400">Ratio buts/match</span>
+                        <span class="text-xl font-bold">{{ $ratioButsMatch }}</span>
+                    </div>
+                </div>
                 <div class="overflow-x-auto rounded-lg shadow" style="background:#181d1f;">
                     <table class="min-w-full bg-[#23272a] text-white text-base bundesliga-table" style="border-radius:0;">
                         <thead class="bg-transparent text-white uppercase text-base">
@@ -88,11 +135,17 @@
                             })->sortByDesc('points')->sortByDesc('gd')->sortByDesc('bp')->values();
                         @endphp
                         @foreach($classement as $i => $row)
-                            <tr class="border-b border-[#333] hover:bg-[#e2001a]/10 transition cursor-pointer" style="font-size:1.15rem;" onclick="window.location='{{ route('equipes.show', $row->equipe->id) }}'">
+                            <tr class="border-b border-[#333] transition cursor-pointer @if($i < 2) bg-green-900/30 @elseif($i >= $classement->count()-3) bg-red-900/30 @endif hover:bg-[#e2001a]/10" style="font-size:1.15rem;" onclick="window.location='{{ route('equipes.show', $row->equipe->id) }}'">
                                 <td class="px-4 py-3 font-extrabold text-white">{{ $i+1 }}</td>
                                 <td class="px-4 py-3 flex items-center gap-2 font-extrabold">
                                     <x-team-logo :team="$row->equipe" :size="32" />
                                     <span>{{ $row->equipe->nom }}</span>
+                                    @if($i < 2)
+                                        <span class="ml-2 px-2 py-1 rounded bg-green-700 text-white text-xs font-bold">Qualifié</span>
+                                    @endif
+                                    @if($i >= $classement->count()-3)
+                                        <span class="ml-2 px-2 py-1 rounded bg-red-700 text-white text-xs font-bold">Relégué</span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">{{ $row->mj }}</td>
                                 <td class="px-4 py-3 text-center">{{ $row->mg }}</td>

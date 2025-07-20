@@ -28,7 +28,6 @@
     <div class="space-y-12">
         @foreach($pools as $pool)
             @php
-                // Afficher toutes les équipes du pool même sans stats
                 $classement = $pool->equipes->map(function($eq) use ($selectedSaison) {
                     $stats = $eq->statsSaison($selectedSaison?->id)->first();
                     return (object) [
@@ -41,21 +40,24 @@
                         'bc' => $stats?->buts_contre ?? 0,
                         'gd' => ($stats?->buts_pour ?? 0) - ($stats?->buts_contre ?? 0),
                         'points' => $stats?->points ?? 0,
-                        'qualifie' => $stats?->qualifie ?? false,
-                        'relegue' => $stats?->relegue ?? false,
                     ];
                 })->sortByDesc('points')->sortByDesc('gd')->sortByDesc('bp')->values();
+                $totalButs = $classement->sum('bp');
+                $totalMatchs = $classement->sum('mj');
+                $ratioButsMatch = $totalMatchs ? number_format($totalButs / $totalMatchs, 2) : '-';
+                $qualifiesCount = $classement->count() >= 2 ? 2 : $classement->count();
+                $releguesCount = $classement->count() >= 3 ? 3 : $classement->count();
             @endphp
             <div class="bg-bl-card border border-bl-border rounded-xl shadow-lg p-6 mb-8">
                 <div class="flex flex-wrap gap-4 mb-4 items-center justify-between">
                     <h2 class="text-2xl font-bold text-white">Pool {{ $pool->nom }}</h2>
                     <div class="flex flex-wrap gap-2">
                         <div class="bg-green-900 text-green-400 px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-green-700">
-                            <span class="font-bold text-lg">{{ $classement->where('qualifie', true)->count() }}</span>
+                            <span class="font-bold text-lg">{{ $qualifiesCount }}</span>
                             <span class="text-xs font-semibold">Qualifiés</span>
                         </div>
                         <div class="bg-red-900 text-white px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-red-700">
-                            <span class="font-bold text-lg">{{ $classement->where('relegue', true)->count() }}</span>
+                            <span class="font-bold text-lg">{{ $releguesCount }}</span>
                             <span class="text-xs font-semibold">Relégués</span>
                         </div>
                         <div class="bg-bl-card text-white px-4 py-2 rounded-xl flex flex-col items-center min-w-[90px] border border-bl-border">
@@ -104,11 +106,17 @@
                         </thead>
                         <tbody>
                             @foreach($classement as $index => $item)
-                                <tr class="border-b border-bl-border hover:bg-bl-dark transition cursor-pointer" onclick="window.location='{{ route('admin.equipes.show', $item->equipe->id) }}'">
+                                <tr class="border-b border-bl-border transition cursor-pointer @if($index < 2) bg-green-900/30 @elseif($index >= $classement->count()-3) bg-red-900/30 @endif hover:bg-bl-dark" onclick="window.location='{{ route('admin.equipes.show', $item->equipe->id) }}'">
                                     <td class="px-2 py-2 font-bold text-white">{{ $index+1 }}</td>
                                     <td class="px-2 py-2 font-semibold text-white flex items-center gap-2">
                                         <x-team-logo :team="$item->equipe" :size="28" />
                                         <span>{{ $item->equipe->nom ?? '-' }}</span>
+                                        @if($index < 2)
+                                            <span class="ml-2 px-2 py-1 rounded bg-green-700 text-white text-xs font-bold">Qualifié</span>
+                                        @endif
+                                        @if($index >= $classement->count()-3)
+                                            <span class="ml-2 px-2 py-1 rounded bg-red-700 text-white text-xs font-bold">Relégué</span>
+                                        @endif
                                     </td>
                                     <td class="px-2 py-2 text-white">{{ $item->mj }}</td>
                                     <td class="px-2 py-2 text-white">{{ $item->mg }}</td>
