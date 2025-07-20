@@ -10,7 +10,14 @@
                 @foreach($joueurs as $joueur)
                     <label class="flex items-center space-x-2 text-white bg-bl-dark px-2 py-1 rounded">
                         <input type="checkbox" wire:model="titulaires" value="{{ $joueur->id }}" @if(in_array($joueur->id, $remplacants)) disabled @endif>
-                        <span>{{ $joueur->nom }}</span>
+                        @if($joueur->photo)
+                            <img src="{{ asset('storage/' . $joueur->photo) }}" alt="{{ $joueur->nom }}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\'w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 mr-2\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#b0b0b0\' viewBox=\'0 0 24 24\' class=\'w-6 h-6\'><circle cx=\'12\' cy=\'8\' r=\'4\'/><path d=\'M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z\'/></svg></div>'">
+                        @else
+                            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="w-6 h-6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/></svg>
+                            </div>
+                        @endif
+                        <span>{{ $joueur->nom }} {{ $joueur->prenom }}</span>
                     </label>
                 @endforeach
             </div>
@@ -22,7 +29,14 @@
                 @foreach($joueurs as $joueur)
                     <label class="flex items-center space-x-2 text-white bg-bl-dark px-2 py-1 rounded">
                         <input type="checkbox" wire:model="remplacants" value="{{ $joueur->id }}" @if(in_array($joueur->id, $titulaires)) disabled @endif>
-                        <span>{{ $joueur->nom }}</span>
+                        @if($joueur->photo)
+                            <img src="{{ asset('storage/' . $joueur->photo) }}" alt="{{ $joueur->nom }}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\'w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 mr-2\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#b0b0b0\' viewBox=\'0 0 24 24\' class=\'w-6 h-6\'><circle cx=\'12\' cy=\'8\' r=\'4\'/><path d=\'M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z\'/></svg></div>'">
+                        @else
+                            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="w-6 h-6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/></svg>
+                            </div>
+                        @endif
+                        <span>{{ $joueur->nom }} {{ $joueur->prenom }}</span>
                     </label>
                 @endforeach
             </div>
@@ -34,13 +48,31 @@
                 @foreach($remplacants as $remplacantId)
                     <div class="flex flex-col md:flex-row md:items-center md:space-x-2 space-y-2 md:space-y-0 text-white">
                         <div class="flex items-center space-x-2">
-                            <span class="font-medium">{{ $joueurs->find($remplacantId)?->nom }}</span>
+                            @php $remplacant = $joueurs->find($remplacantId); @endphp
+                            @if($remplacant && $remplacant->photo)
+                                <img src="{{ asset('storage/' . $remplacant->photo) }}" alt="{{ $remplacant->nom }}" class="w-8 h-8 rounded-full object-cover mr-2" onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\'w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 mr-2\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#b0b0b0\' viewBox=\'0 0 24 24\' class=\'w-6 h-6\'><circle cx=\'12\' cy=\'8\' r=\'4\'/><path d=\'M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z\'/></svg></div>'">
+                            @else
+                                <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 mr-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="w-6 h-6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/></svg>
+                                </div>
+                            @endif
+                            <span class="font-medium">{{ $remplacant?->nom }} {{ $remplacant?->prenom }}</span>
                             <span>→</span>
                             @if(count($titulaires) > 0)
                                 <select wire:model="remplacements.{{ $remplacantId }}.joueur" class="form-select bg-bl-dark text-white border-bl-border focus:ring-2 focus:ring-bl-accent focus:border-bl-accent rounded px-2 py-1">
                                     <option value="">-- Choisir le joueur remplacé --</option>
                                     @foreach($titulaires as $titulaireId)
-                                        <option value="{{ $titulaireId }}">{{ $joueurs->find($titulaireId)?->nom }}</option>
+                                        @php $titulaire = $joueurs->find($titulaireId); @endphp
+                                        <option value="{{ $titulaireId }}">
+                                            @if($titulaire && $titulaire->photo)
+                                                <img src="{{ asset('storage/' . $titulaire->photo) }}" alt="{{ $titulaire->nom }}" class="inline w-6 h-6 rounded-full object-cover mr-1" onerror="this.style.display='none'; this.parentNode.innerHTML='<span class=\'inline-block w-6 h-6 rounded-full bg-gray-700 mr-1\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'#b0b0b0\' viewBox=\'0 0 24 24\' class=\'w-4 h-4\'><circle cx=\'12\' cy=\'8\' r=\'4\'/><path d=\'M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z\'/></svg></span>'">
+                                            @else
+                                                <span class="inline-block w-6 h-6 rounded-full bg-gray-700 mr-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="#b0b0b0" viewBox="0 0 24 24" class="w-4 h-4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.313 3.134-6 7-6s7 2.687 7 6v1H4v-1z"/></svg>
+                                                </span>
+                                            @endif
+                                            {{ $titulaire?->nom }} {{ $titulaire?->prenom }}
+                                        </option>
                                     @endforeach
                                 </select>
                             @else
