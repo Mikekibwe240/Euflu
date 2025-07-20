@@ -63,22 +63,24 @@
                         $diff = $date->diffInDays($today, false);
                         if ($diff === 0) {
                             $relative = "Aujourd'hui";
-                        } elseif ($diff === 1) {
-                            $relative = 'Hier';
-                        } elseif ($diff === 2) {
-                            $relative = 'Avant-hier';
                         } elseif ($diff === -1) {
                             $relative = 'Demain';
+                        } elseif ($diff === 1) {
+                            $relative = 'Hier';
                         } elseif ($diff === -2) {
                             $relative = 'Après-demain';
-                        } elseif ($diff < 0) {
+                        } elseif ($diff === 2) {
+                            $relative = 'Avant-hier';
+                        } elseif ($diff < -2) {
                             $relative = 'Dans ' . abs($diff) . ' jours';
-                        } else {
+                        } elseif ($diff > 2) {
                             $relative = 'Il y a ' . $diff . ' jours';
+                        } else {
+                            $relative = '';
                         }
                     @endphp
                     {{ $relative }}
-                    <span class="block text-[10px] text-gray-500 font-normal">{{ \Carbon\Carbon::parse($match->date)->locale('fr')->translatedFormat('l d F') }}</span>
+                    <span class="block text-[10px] text-gray-500 font-normal">{{ \Carbon\Carbon::parse($match->date)->format('d/m/Y') }}</span>
                 </div>
                 <div class="flex items-center gap-2 min-w-0 justify-center">
                     <x-team-logo :team="$match->equipe1" :size="28" />
