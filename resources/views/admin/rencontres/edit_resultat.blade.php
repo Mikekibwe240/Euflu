@@ -210,6 +210,19 @@
 var joueursEquipe1 = @json($joueursEquipe1 ?? []);
 var joueursEquipe2 = @json($joueursEquipe2 ?? []);
 document.addEventListener('DOMContentLoaded', function() {
+    // Fonctions pour activer/désactiver les boutons buteur selon le score
+    function updateButeurButtons() {
+        const score1 = parseInt(document.querySelector('input[name="score_equipe1"]').value) || 0;
+        const score2 = parseInt(document.querySelector('input[name="score_equipe2"]').value) || 0;
+        const btnAddButeur1 = document.getElementById('add-buteur-equipe1');
+        const btnAddButeur2 = document.getElementById('add-buteur-equipe2');
+        if (btnAddButeur1) btnAddButeur1.disabled = (score1 === 0);
+        if (btnAddButeur2) btnAddButeur2.disabled = (score2 === 0);
+    }
+    updateButeurButtons();
+    document.querySelector('input[name="score_equipe1"]').addEventListener('input', updateButeurButtons);
+    document.querySelector('input[name="score_equipe2"]').addEventListener('input', updateButeurButtons);
+
     // Ajouter buteur équipe 1
     const btnAddButeur1 = document.getElementById('add-buteur-equipe1');
     if (btnAddButeur1) {
@@ -256,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
             select += '<option value="">Sélectionner un joueur</option>';
             joueursEquipe1.forEach(j => select += `<option value="${j.id}">${j.nom} ${j.prenom}</option>`);
             select += '</select>';
-            let type = '<select name="type_cartons_equipe1[]" class="form-select bg-bl-dark text-white border-bl-border focus:ring-2 focus:ring-bl-accent focus-border-bl-accent transition w-24"><option value="jaune">Jaune</option><option value="rouge">Rouge</option></select>';
+            let type = '<select name="type_cartons_equipe1[]" class="form-select bg-bl-dark text-white border-bl-border focus:ring-2 focus-ring-bl-accent focus-border-bl-accent transition w-24"><option value="jaune">Jaune</option><option value="rouge">Rouge</option></select>';
             div.innerHTML = select + type + '<input type="number" name="minutes_cartons_equipe1[]" class="form-input w-20 bg-bl-dark text-white border-bl-border focus:ring-2 focus-ring-bl-accent focus-border-bl-accent transition" placeholder="Minute">' + '<button type="button" class="remove-carton bg-red-500 text-white px-2 rounded">X</button>';
             document.getElementById('cartons-equipe1-list').appendChild(div);
         });
@@ -267,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btnAddCarton2.addEventListener('click', function() {
             const div = document.createElement('div');
             div.className = 'flex flex-wrap gap-2 mb-2 carton-row items-center';
-            let select = '<select name="cartons_equipe2[]" class="form-select bg-bl-dark text-white border-bl-border focus:ring-2 focus:ring-bl-accent focus-border-bl-accent transition w-40">';
+            let select = '<select name="cartons_equipe2[]" class="form-select bg-bl-dark text-white border-bl-border focus:ring-2 focus-ring-bl-accent focus-border-bl-accent transition w-40">';
             select += '<option value="">Sélectionner un joueur</option>';
             joueursEquipe2.forEach(j => select += `<option value="${j.id}">${j.nom} ${j.prenom}</option>`);
             select += '</select>';
